@@ -68,13 +68,29 @@ Oddly, when thinking about this, it seems like the choice of discr model to use 
 \section{Related work}
 
 \begin{enumerate}
-\item GeoF: Geodesic smoothing of RF output.  Uses an Entangled Forest.
-\item Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
-\item AutoContext.  Tu.  2008.
-\item Automatic Localization and Identification of Vertebrae in Arbitrary Field-of-View CT Scans.  Glocker et al.  2012: Uses Regression Forest.
-\item Vertebrae Localization in Pathological Spine CT via Dense Classification from Sparse Annotations.  Glocker et al.  2013: Uses Classification this time.
+\item GeoF~\cite{GeoForests2013}: Geodesic smoothing of RF output.  Uses an Entangled Forest.
+\item Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
+\item AutoContext~\cite{AutoContext2008}.  Tu.  2008.
+\item Automatic Localization and Identification of Vertebrae in Arbitrary Field-of-View CT Scans.~\cite{Glocker2012} Glocker et al.  2012: Uses Regression Forest.
+\item Vertebrae Localization in Pathological Spine CT via Dense Classification from Sparse Annotations.~\cite{Glocker2013} Glocker et al.  2013: Uses Classification this time.
+\item Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
 \end{enumerate}
 * List is still in progress
+
+\section{Results}
+
+Experiments:
+\begin{enumerate}
+\item Auto Context
+\item GeoF
+\item AAM with inference (like Glocker)
+\item AAM with inference, tree weighting
+\item 
+\item GeoF, tree weighting
+\item
+\item AAM without inference
+\item AAM without inference, tree weighting
+\end{enumerate}
 
 \section{Classification-based Approach}
 
@@ -628,7 +644,7 @@ Fax (714) 761-1784.
 
 {\small
 \bibliographystyle{ieee}
-\bibliography{egbib}
+\bibliography{somites2014}
 }
 
 \end{document}
