@@ -47,89 +47,30 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-   The ABSTRACT is to be in fully-justified italicized text, at the top
-   of the left-hand column, below the author and affiliation
-   information. Use the word ``Abstract'' as the title, in 12-point
-   Times, boldface type, centered relative to the column, initially
-   capitalized. The abstract is to be in 10-point, single-spaced type.
-   Leave two blank lines after the Abstract, then begin the main text.
-   Look at previous CVPR abstracts to get a feel for style and length.
+   We mix discriminative (discr) and generative models (gen), in a smart way.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
-\section{Overview of Idea}
+\section{Introduction}
+The idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF~\cite{GeoForests2013}, which does "image aware" smoothing, using Geodesic distances. 
+%
+Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output. 
 
-The initial idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF, which does "image aware" smoothing, using Geodesic distances.  Another potential contribution is the idea of learning the smoothing parameter.  Intuitively, it seems like the smoothing should be most active in the early stages of the cascade, when the output is most dubious, and then should decrease as you trust the output more with each iteration.
+Our contributions: 
+%
+(1) Use Active Appearance Model and HMM for "`image aware"' smoothing in a RF cascade. 
+Closest works: 
+First, AutoContext~\cite{AutoContext2008}, but they don't do any smoothing. 
+Second, GeoF~\cite{GeoForests2013}, but they don't use a generative model for smoothing. 
+Third, Glocker~\cite{Glocker2013}, but they do not run a cascade. 
+%
+(2) Tree weighting based on smoothing. Can be combined with any kind of smoothing. Idea: rate the trees of a forest: who agrees most with the smoothed output? This way, ...
+%
 
-Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output.
+\section{Method}
 
-Oddly, when thinking about this, it seems like the choice of discr model to use is sensitive to the above statement of purpose.  For example, GeoF uses classification, which provides a suitable output (a probability map) for smoothing.  However, the transition between discr and gen models is more seamless when the parameters of the model are regressed directly.  I'll return to this point.
-
-\section{Related work}
-
-\begin{enumerate}
-\item GeoF~\cite{GeoForests2013}: Geodesic smoothing of RF output.  Uses an Entangled Forest.
-\item Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
-\item AutoContext~\cite{AutoContext2008}.  Tu.  2008.
-\item Automatic Localization and Identification of Vertebrae in Arbitrary Field-of-View CT Scans.~\cite{Glocker2012} Glocker et al.  2012: Uses Regression Forest.
-\item Vertebrae Localization in Pathological Spine CT via Dense Classification from Sparse Annotations.~\cite{Glocker2013} Glocker et al.  2013: Uses Classification this time.
-\item Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
-\end{enumerate}
-* List is still in progress
-
-\section{Results}
-
-Experiments:
-\begin{enumerate}
-\item Auto Context
-\item GeoF
-\item AAM with inference (like Glocker)
-\item AAM with inference, tree weighting
-\item 
-\item GeoF, tree weighting
-\item
-\item AAM without inference
-\item AAM without inference, tree weighting
-\end{enumerate}
-
-\begin{table*}[t]
-\begin{center}
-\begin{tabular}{l||l|lll|lll}
-					& AutoContext & \multicolumn{3}{|c|}{GeoF} & \multicolumn{3}{|c}{AAM+Inf} \\
-					& rfOutput & rfOutput & smoothed & weighted & rfOutput & smoothed &weighted \\
-%				& median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) \\
-\hline
-Level 1 &  &  &  &  &  &  \\
-Level 2 &  &  &  &  &  & \\
-Level 3 &  &  &  &  &  & \\
-\hline
-\end{tabular}
-\caption{Evaluation on 22 datasets. median/mean(std), all 21 somites}
-\label{tab:results}
-\end{center}
-\end{table*}
-
-Discuss: 
-Glocker (1 level, AAM with inference) vs.\ last level
-
-
-\section{Classification-based Approach}
-
-I'll first describe an approach using an RF classifier as the descr function.  Then I'll compare and contrast how it might look using RF regression as the descr function.
-
-\subsection{Random Forest Classifier}
-
-Currently, I use an RF classifier with roughly 50 features calculated from the grayscale image.  Importantly, 2 of these features are the XY position, which introduces some global "context" early on.  (For this to work, I align the images based on masks that I compute using Sbalzarini's near-optimal thresholding algorithm).  Other features include standard filter-bank responses, from which I select the 50 best using variable importance.
-
-If one were to do cascading without any smoothing, it would be very similar to AutoContext.  This is implemented by extending the number of features in the feature stack to include the posterior probabilities of each class (i.e. the RF output, with one new feature for each class).  In the first iteration, these probabilities are all uniform, so the decision trees ignore them, because they're non-descriminating.  After each iteration, these probability maps are updated with the output of the previous forest.
-
-I would propose to follow the GeoF method and keep the raw RF output when introducing the smoothed prob maps.  In this case, just add (again) one new feature for each class, but this time corresponding to the smoothed RF output.  In the first iteration, these prob maps are also uniform.  In subsequent iterations, they're updated by the smoothed output of the previous forest.  Altogether, this is roughly 100 features: 50 from filter responses, 25 from RF output, 25 from smoothed RF output.
-
-A few technical notes: VIGRA introduces randomization both through bagging (every tree sees a random subset of the data), and random node optimization (every node optimizes over a random subset of the features).  Context can then be introduced by allowing nodes to select features with a randomly selected offset from their current location.  Note: autocontext only allows non-local feature selection in the subset of "probability features" (meaning RF output).  I haven't found a good justification for this, so would probably allow non-local selection for all features.
-
-\subsection{Active Appearance Model}
-
-Active appearance models (AAMs) are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include robust error metrics, and priors on the model parameters.  There are also a variety of optimisation approaches, and the choice depends on the additional bells-and-whistles included in the model.
+\subsection{AAM}
+Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include robust error metrics, and priors on the model parameters(see also~\cite{BakerAAM2004}).  There are also a variety of optimisation approaches, and the choice depends on the additional bells-and-whistles included in the model.
 
 Shape Model:
 
@@ -176,6 +117,113 @@ If $F_i(p,q)$ is quadratic, this can be interpreted in the Bayesian framework as
 where r is the parameter that captures how much we trust the discr model output (this could be learned).
 
 Note, adding priors doesn't slow down the code too much.  You can still use the same fitting algorithm, there's just some extra computation in each loop.
+
+\subsection{Inference}
+HMM, probabilistic inference.
+
+\subsection{RF}
+Filter Bank, Classification Forest, offset and difference features. 
+
+\subsection{Tree Weights}
+ 
+\subsection{Cascade}
+
+\section{Results}
+
+Experiments:
+\begin{enumerate}
+\item Auto Context
+\item GeoF
+\item AAM with inference (like Glocker)
+\item AAM with inference, tree weighting
+\item 
+\item GeoF, tree weighting
+\item
+\item AAM without inference
+\item AAM without inference, tree weighting
+\end{enumerate}
+
+\begin{table*}[t]
+\begin{center}
+\begin{tabular}{l||l|lll|lll}
+					& AutoContext & \multicolumn{3}{|c|}{GeoF} & \multicolumn{3}{|c}{AAM+Inf} \\
+					& rfOutput & rfOutput & smoothed & weighted & rfOutput & smoothed &weighted \\
+%				& median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) \\
+\hline
+Level 1 &  &  &  &  &  &  \\
+Level 2 &  &  &  &  &  & \\
+Level 3 &  &  &  &  &  & \\
+\hline
+\end{tabular}
+\caption{Evaluation on 22 datasets. median/mean(std), all 21 somites}
+\label{tab:results}
+\end{center}
+\end{table*}
+
+Discuss: 
+Glocker (1 level, AAM with inference) vs.\ last level
+
+\begin{figure*}[tb]
+\centering
+\small
+\begin{center}
+%	\figpart{a}
+		(a) \includegraphics[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_RF.png} %&
+%	\quad
+%	\figpart{b}
+		(b) \includegraphics[trim=.75cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_GeoF.png} \\
+%	\,
+%	\figpart{c}
+		(c) \includegraphics[trim=.75cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_model.png} %\\
+\end{center}
+%\includegraphics[trim=4cm 0cm 5cm 0cm, clip=true, width=0.45\textwidth]{gfx/noInpainting.png} \\
+\label{boxplots}
+% \vspace{-2mm}
+\caption{ %Box plots of Dice scores.}
+%\figpart{a}~ 
+(a) 2 level cascade, RF output 
+%
+% \figpart{b}~
+(b) geodesic smoothing, 1st level
+%
+% \figpart{c}~
+(c) model fit}
+\end{figure*}
+
+\section{Overview of Idea}
+
+The initial idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF, which does "image aware" smoothing, using Geodesic distances.  Another potential contribution is the idea of learning the smoothing parameter.  Intuitively, it seems like the smoothing should be most active in the early stages of the cascade, when the output is most dubious, and then should decrease as you trust the output more with each iteration.
+
+Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output.
+
+Oddly, when thinking about this, it seems like the choice of discr model to use is sensitive to the above statement of purpose.  For example, GeoF uses classification, which provides a suitable output (a probability map) for smoothing.  However, the transition between discr and gen models is more seamless when the parameters of the model are regressed directly.  I'll return to this point.
+
+\section{Related work}
+
+\begin{enumerate}
+\item GeoF~\cite{GeoForests2013}: Geodesic smoothing of RF output.  Uses an Entangled Forest.
+\item Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
+\item AutoContext~\cite{AutoContext2008}.  Tu.  2008.
+\item Automatic Localization and Identification of Vertebrae in Arbitrary Field-of-View CT Scans.~\cite{Glocker2012} Glocker et al.  2012: Uses Regression Forest.
+\item Vertebrae Localization in Pathological Spine CT via Dense Classification from Sparse Annotations.~\cite{Glocker2013} Glocker et al.  2013: Uses Classification this time.
+\item Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
+\end{enumerate}
+* List is still in progress
+
+
+\section{Classification-based Approach}
+
+I'll first describe an approach using an RF classifier as the descr function.  Then I'll compare and contrast how it might look using RF regression as the descr function.
+
+\subsection{Random Forest Classifier}
+
+Currently, I use an RF classifier with roughly 50 features calculated from the grayscale image.  Importantly, 2 of these features are the XY position, which introduces some global "context" early on.  (For this to work, I align the images based on masks that I compute using Sbalzarini's near-optimal thresholding algorithm).  Other features include standard filter-bank responses, from which I select the 50 best using variable importance.
+
+If one were to do cascading without any smoothing, it would be very similar to AutoContext.  This is implemented by extending the number of features in the feature stack to include the posterior probabilities of each class (i.e. the RF output, with one new feature for each class).  In the first iteration, these probabilities are all uniform, so the decision trees ignore them, because they're non-descriminating.  After each iteration, these probability maps are updated with the output of the previous forest.
+
+I would propose to follow the GeoF method and keep the raw RF output when introducing the smoothed prob maps.  In this case, just add (again) one new feature for each class, but this time corresponding to the smoothed RF output.  In the first iteration, these prob maps are also uniform.  In subsequent iterations, they're updated by the smoothed output of the previous forest.  Altogether, this is roughly 100 features: 50 from filter responses, 25 from RF output, 25 from smoothed RF output.
+
+A few technical notes: VIGRA introduces randomization both through bagging (every tree sees a random subset of the data), and random node optimization (every node optimizes over a random subset of the features).  Context can then be introduced by allowing nodes to select features with a randomly selected offset from their current location.  Note: autocontext only allows non-local feature selection in the subset of "probability features" (meaning RF output).  I haven't found a good justification for this, so would probably allow non-local selection for all features.
 
 \section{Model-based Smoothing of RF Output}
 
