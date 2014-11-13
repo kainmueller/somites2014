@@ -169,6 +169,8 @@ By the above method, a number of model instances would be initialized and fit, f
 Approach: Cascade interleaved with "`smoothing"'. 
 Evaluation: Different kinds of "`smoothing"', each with different kinds of outputs.
 
+Dataset: 32 images of developing zebrafish. Task: Semantic segmentation of 21 somites (i.e.\ developing vertebrae).
+
 \paragraph{Our Setup: Probabilistic Inference}
 
 \paragraph{Comparison: Auto Context}
@@ -180,14 +182,10 @@ Evaluation: Different kinds of "`smoothing"', each with different kinds of outpu
 Experiments:
 \begin{enumerate}
 \item Auto Context
-\item GeoF
-\item AAM with inference (like Glocker)
-\item AAM with inference, tree weighting
-\item 
-\item GeoF, tree weighting
-\item
-\item AAM without inference
-\item AAM without inference, tree weighting
+\item GeoF (two versions)
+\item AAM with MAP inference 
+\item AAM with probabilistic inference 
+\item (AAM with probabilistic inference, tree weighting)
 \end{enumerate}
 
 \begin{table*}[t]
