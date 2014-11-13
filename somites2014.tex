@@ -24,8 +24,8 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{Embracing Uncertainty: Coupling Cascaded Forest Predictors with
-Model-based Marginals for Semantic Segmentation}
+\title{UFo - Coupling Uncertain Active Constellation Models with \\
+Cascaded Forest Predictors for Sematic Segmentation}
 
 \author{First Author\\
 Institution1\\
@@ -48,6 +48,12 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
+We consider the task of model-based semantic segmentation. The model is described by a constellation model of parts that are represented by active shape- and appearance-based models, we term this an active constellation model. As a running example we utilize a 21-part, chain–based spine model of a zebra fish observed in SPIM microscopic images. The prevailing approach to solve this task is to first generate pixel-independent features for each part, e.g. via a cascaded decision forest predictor, which are then fed into an MRF-based model-fitting objective to infer the optimal MAP solution of the constellation model. Our key contribution is to abandon this static, two-stage approach and mix feature generation and model-based inference in a new, more flexible, way. In particular we interleave the cascaded forest predictors with inference steps for the model-fitting. A key finding is that “uncertain” model-outputs at intermediate stages of the cascade, in the form of part-based marginals, are essential for best performance. This is because, on one hand the semantic segmentation is guided by the model, and on the other hand correct solutions, which are different to intermediate MAP solution, can still be found. We validate our findings with an in-depth study of alternative inference steps, including popular geodesic smoothing, and alternative output generation steps, including max-marginals. We believe that our findings are not only relevant for other types of constellation models but, more generally, for the recent trend of combing deep learning models with physically-motivated structured models. 
+
+
+Embracing Uncertainty: Coupling Cascaded Forest Predictors with
+Model-based Marginals for Semantic Segmentation
+
 Embracing Uncertainty: Coupling Auto-context predictors with
 Model-based Marginals for Spine Localization in Zebrafish
 
@@ -55,10 +61,30 @@ Embracing Uncertainty: Coupling Auto-context predictors with
 Model-based Marginals for Semantic Segmentation
 
    We mix discriminative (discr) and generative models (gen), in a smart way.
+
 \end{abstract}
 
-%%%%%%%%% BODY TEXT
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{Teaser.png}
+\end{figure}
+
+
 \section{Introduction}
+Many tasks in computer vision have as input an image and as output a dense labeling, where each pixel is assigned one out of many pre-defined classes. An example is a sematic segmentation of a person in an image, where each pixel is assigned a label such as “background”, “left leg”, or “head”. 
+To solve this task, two major trends in computer vision have played an important role in the last decades.  The first, well studied, trend is to infer the MAP or Max-Marginal solution in a so-called structured model, such as a Conditional Random Field (CRFs). Here structure models mean that neighboring pixels in an image do not make independent decisions, e.g. neighboring pixels are likely to take the same label. The form of the potential functions in the structure model is based on two sources of information.  On one hand it is guided by {\bf physical principles}, such as the kinematics of a person. On the other hand, in many applications the potential functions have to be derived from the input data itself. This brings us to the second, more recent, major trend in computer vision – learning deep models, such as CNNs [x], Auto-Context Models [x] or Cascaded Forest predictors [x]. These models play the role of learning a complex non-linear mapping from images to features which are relevant for the task at hand. 
+The classical example of how to use these trends from sematic segmentation, see e.g. [], is to train a deep model, e.g. cascaded forest predictor, from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF, where the pairwise potentials, e.g. on a 4-connected grid, are gradient-weighted Potts-model terms. This modelling framework is however very static: first features are generated and then the dense labeling, e.g. MAP solution, is inferred. For instance, in order to optimize test-time performance, the first question is about the appropriate runtime trade-off between generating features and performing inference. Oftentimes, MAP inference is NP-hard and considerable more time is spend on MAP inference than feature generation. On the other hand, better features lead often to models with potential simpler MAP inference problems, since they relate to stronger unary potentials. This simple discussion motivates that one has to think of the two steps in a more holistic fashion – which is the goal of this work.
+In this work we are concerned with new ways to interleave feature generation, via deep learning models, and inference in structured models, guided by physical principles. This is in our view one of the most crucial questions for making a step forward in dense labeling tasks. For this we will consider the task of semantic segmentation with an active constellation model – that means that the parts are defined via active shape and appearance-based models [x]. Motivated by recent work [UweCVPR13] on cascaded regression Forests with interleaved Gaussian Conditional Random Fields we suggest a cascaded pipeline that is illustrated in figure 1. The most important aspect of this cascade is the question of what to infer from the constellation at intermediate stages of the cascade. Various ideas come to mind: Marginals or MAP solution of the MRF-based constellation model, model-agnostic geodesic smoothing as suggested by TODO [x], and variants of that. One of the main aspects of this work is to study these trade-offs. We see that for model-based segmentation of soft marginals is a clear winner. The reason is that individual parts (so-called somits) are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. Marginals help to not commit to a wrong solution in the early stages of the cascade.
+To summarize, we claim the following three {\bf contributions}:
+\begin{itemize}
+\item In the field of model-based semantic segmentation we are the first to interleave feature generation and model-based inference. We show that this boost performance considerably, compared to not cascading. Note, related hierachical appraoches [cootes] focus on speed not quality that comes form feature generation. 
+\item We show, for the first time, that probabilistic inference gives a major (6\%) boost in performance in cascaded MRF-Forest-based models. This is compare to standard MAP inference and model-agnostic geodesic smoothing [GeoF]. 
+\item We are the first to tackle spine detection in zebra fish, where we achieve an overall very high mean score of 82\%.
+\end{itemize}
+
+
+
+%%%%%%%%% BODY TEXT
+\section{IntroductionOld}
 The idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF~\cite{GeoForests2013}, which does "image aware" smoothing, using Geodesic distances. 
 %
 Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output. 
@@ -74,6 +100,7 @@ Third, Glocker~\cite{Glocker2013}, but they do not run a cascade.
 (2) Tree weighting based on smoothing. Can be combined with any kind of smoothing. Idea: rate the trees of a forest: who agrees most with the smoothed output? This way, ...
 %
 
+\section{Related work}
 
 Literature.
 \begin{enumerate}
@@ -181,28 +208,19 @@ By the above method, a number of model instances would be initialized and fit, f
 
 The first step is to use the AAM model to fit the grayscale image in a way that is guided by the output of the RF.  There are (at least) two ways to do this: additive and multiplicative.
 
-\subsection{Additive Method}
+\subsection{Generating Part Hypotheses}
 
-Simultaneously minimize the error from two AAMs:
+\paragraph{Model Initialisation. }
+%
+A key aspect of the problem is how to initialize the AAM model for fitting.  This is one of the big challenges of AAMs, since they're local search methods, and a big benefit of using the RF.  However, there doesn't seem to be a "nice" way to initialize the AAM directly from the RF output.  It's easy to think of ways to initialize the XY position directly from the RF output, but how should you initialize orientation, scale, shape, appearance?  There are for sure some \emph{ad hoc} ways, but it doesn't feel very elegant.  This is where it's interesting to contrast regression, which directly gives you the initialization.
 
-\[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + r\sum_{x \epsilon s_0} [A_2(x) - I_2(N(W(x;p);q)]^2 \]
+\subsection{Weighting and Fusing Hypotheses}
 
-where $I_2$ is the RF output and $A_2(x)$ is a "soft mask" from averaging all of the ground truth labelings.  Again, r weights the relative importance of the two terms.  I would tend not to include linear appearance variation for the mask, and since the warp parameters are the same as for the original grayscale image, this doesn't introduce any new AAM parameters.
+\paragraph{Constellation Model. }
 
-\subsection{Multiplicative Method}
+\paragraph{Weighting Hypotheses via Inference. }
 
-The most efficient optimization method actually proceeds by minizing the following expression, with respect to $\Delta p$ and $\Delta q$:
-
-\[ \sum_{x \epsilon s_0} [A(N(W(x;\Delta p);\Delta q) - I(N(W(x;p);q)]^2 \]
-
-Thus, I think one can introduce the following change, without breaking the optimization algorithm:
-
-\[ \sum_{x \epsilon s_0} [I_3(N(W(x;p);q)]*[A(N(W(x;\Delta p);\Delta q) - I(N(W(x;p);q)]^2 \]
-
-where $I_3 = 1 - r*log(p(c))$, r is again the relative importance parameter, and p(c) is the prob of class c at pixel x.  This is analogous to using a Robust statistic, which is a per-pixel weight; however, it's a bit more complicated, since the mask of weights is dependent on the warp itself, and so needs to updated during fitting.  This suggests it could be a good deal slower to do the fitting (which is true for Robust Stats).
-
-\subsection{Generating a Smoothed RF Output}
-
+\paragraph{Fusing Weighted Hypotheses. }
 Recall, since we initialized many AAMS for fitting, and did probabilistic inference over all of these solutions, we have multiple masks each with its own probability.  I would propose to use a distance function from each instance \emph{s} of the AAM model fits.
 
 \[ \delta (x,s) = \begin{cases} 0, & \mbox{if } x \epsilon \Omega _s \\ d(x, \Omega _s), & \mbox{else} \end{cases} \]
@@ -217,7 +235,6 @@ where $\Omega _s$ is the mask associated with instance s.  Then,
 
 where p(s) is the probability of a given model instance.  The intuition is as follows: If a pixel x is within the mask region corresponding to a highly probable AAM model fit, then it keeps it's probability; however, if it's far from one of these regions, then it's probability would be reduced.  Through the renormalization, this accomplishes the desired smoothing, as in GeoF.
 
-\subsection{Feature Generation vs. Smoothing}
 
 An alternative way to generate an output from the above method, to be fed back into another RF, is to simply "stamp" the masks associated with the above model instances into an image.  This would amount to a weighted average.
 
@@ -226,10 +243,6 @@ An alternative way to generate an output from the above method, to be fed back i
 where there are S model instances initialized, $p(c|s)$ is a mask associated with model instance s, and p(s) is the prob of model instance s from the probilistic inference.
 
 This "stamping" approach is similar to the smoothing above, except it's not mixed with the original RF output.  From the perspective of generating useful features, this seems like an OK idea.  Question: Is smoothing inherently better than this approach?
-
-\subsection{Model Initialisation}
-
-A key aspect of the problem is how to initialize the AAM model for fitting.  This is one of the big challenges of AAMs, since they're local search methods, and a big benefit of using the RF.  However, there doesn't seem to be a "nice" way to initialize the AAM directly from the RF output.  It's easy to think of ways to initialize the XY position directly from the RF output, but how should you initialize orientation, scale, shape, appearance?  There are for sure some \emph{ad hoc} ways, but it doesn't feel very elegant.  This is where it's interesting to contrast regression, which directly gives you the initialization.
 
 \subsection{Parameters}
 
