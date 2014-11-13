@@ -24,7 +24,8 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{\LaTeX\ Author Guidelines for CVPR Proceedings}
+\title{Embracing Uncertainty: Coupling Cascaded Forest Predictors with
+Model-based Marginals for Semantic Segmentation}
 
 \author{First Author\\
 Institution1\\
@@ -47,6 +48,12 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
+Embracing Uncertainty: Coupling Auto-context predictors with
+Model-based Marginals for Spine Localization in Zebrafish
+
+Embracing Uncertainty: Coupling Auto-context predictors with
+Model-based Marginals for Semantic Segmentation
+
    We mix discriminative (discr) and generative models (gen), in a smart way.
 \end{abstract}
 
@@ -66,6 +73,37 @@ Third, Glocker~\cite{Glocker2013}, but they do not run a cascade.
 %
 (2) Tree weighting based on smoothing. Can be combined with any kind of smoothing. Idea: rate the trees of a forest: who agrees most with the smoothed output? This way, ...
 %
+
+
+Literature.
+
+---- SSMs and Random Forests:
+
+Cootes Femur TMI 2013~\cite{CootesFemurTMI2013}
+
+Cootes Regression Forest + SSM ECCV 2012~\cite{CootesECCV2012RRFandSSM}
+
+---- Constellation models and Forests:
+
+Spine: Glocker~\cite{Glocker2013}
+
+Body parts: Auto Context~\cite{AutoContext2008}, "`Pose Machines"' ECCV 2014~\cite{PoseMachinesECCV2014}
+
+Abdominal images: GeoF~\cite{GeoForests2013}, and GeoF at IPMI 2011~\cite{CriminisiAbdominalIPMI2011}: "'Entangled Decision Forests and their Application for Semantic Segmentation of CT Images"'. Seifert SPIE: Marginal space learning classifier plus MRF~\cite{SeifertAnatomicalSPIE2009} 
+
+(Fish: Rotation invariant features, Ronneberger VibeZ)
+
+---- Cascading with Model Fit
+
+DTF, RTF, GeoF
+
+---- Constellation models of self-similar structures
+
+Spine: (Glocker) Klinder (SSM)~\cite{Klinder2009471}: Generalized Hough Transform as detector
+
+Dental: our MICCAI 2012~\cite{TeethMICCAI2012} (Generalized Hough Transform + SSM as detector)
+
+Worm~\cite{WormMiccai2014}
 
 \section{Method}
 
