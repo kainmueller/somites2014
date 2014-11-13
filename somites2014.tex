@@ -105,16 +105,24 @@ Dental: our MICCAI 2012~\cite{TeethMICCAI2012} (Generalized Hough Transform + SS
 
 Worm~\cite{WormMiccai2014}
 
-\section{Method}
+\section{Background}
+
+\subsection{RF}
+Filter Bank, Classification Forest, offset and difference features. 
+
+\paragraph{Cascade}
+
+\paragraph{Constellation Model/Inference}
+HMM, probabilistic inference.
 
 \subsection{AAM}
-Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include robust error metrics, and priors on the model parameters(see also~\cite{BakerAAM2004}).  There are also a variety of optimisation approaches, and the choice depends on the additional bells-and-whistles included in the model.
+Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}).  
 
 Shape Model:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of x,y coordinates of the landmarks that define the shape.  From PCA, $s_0$ is the mean shape, and $s_i$ are n eigenvectors corresponding to the n largest eigenvalues.  Not shown here is that the training data is first noramlised using a Procrustes analysis using a global shape normalising transformation (in my case, a similarity transform) to avoid modeling this variation in the linear model.
+where s is a vector of x,y coordinates of the landmarks that define the shape.  From PCA, $s_0$ is the mean shape, and $s_i$ are n eigenvectors corresponding to the n largest eigenvalues.  Not shown here is that the training data is first noramlised using a Procrustes analysis using a global shape normalising transformation (in our case, a similarity transform) to avoid modeling this variation in the linear model.
 
 Appearance Model:
 
@@ -132,19 +140,11 @@ where N(x;q) is the similarity transform, parameterized by q, and the cost is ty
 
 \[Cost = \sum_{x \epsilon s_0} [Error]^2 \]
 
-Final note, the most efficient fitting routine actually "projects out" the appearance variation (from the Error image), and simply solves for the parameters of the transformation: p,q.  If you keep one shape parameter (n=1), this leads to a 5 parameter model.
+Final note, the most efficient fitting routine [] actually "projects out" the appearance variation (from the Error image), and simply solves for the parameters of the transformation: p,q.  If you keep one shape parameter (n=1), this leads to a 5 parameter model.
 
-\subsubsection{Robust Error Metric}
+\paragraph{Priors}
 
-One can replaced the SSE metric with a robust error metric, as follows:
-
-\[\sum_{x \epsilon s_0} \rho([A(x) - I(N(W(x;p);q))]^2; \sigma)\]
-
-Unfortunately, the efficient inverse compositional fitting algorithm no longer works, and you have to resort to an alternative algorithm which is significantly slower.
-
-\subsubsection{Priors}
-
-One can alternatively add priors on the model parameters, as follows:
+One can add priors on the model parameters, as follows:
 
 \[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
 
@@ -156,17 +156,26 @@ where r is the parameter that captures how much we trust the discr model output 
 
 Note, adding priors doesn't slow down the code too much.  You can still use the same fitting algorithm, there's just some extra computation in each loop.
 
-\subsection{Inference}
-HMM, probabilistic inference.
 
-\subsection{RF}
-Filter Bank, Classification Forest, offset and difference features. 
+\section{Method: Cascaded RF Interleaved with Probabilistic Generative Constellation Model Inference}
 
-\subsection{Tree Weights}
- 
-\subsection{Cascade}
+By the above method, a number of model instances would be initialized and fit, for each segment.  Each model instance has a cost associated with its fit.  Use these costs as unaries in a Markov Chain Model.  The pair-wise energy comes from statistics on the relative position of neighboring segments in the training data.  This is exactly what Glocker did already; however, we would do probabilistic inference (rather than MAP inference) and keep all the marginals.
+
+\subsection{We get Two Results: RF Output, smoothed Output.}
+
+\subsection{Tree Weights?}
 
 \section{Results}
+Approach: Cascade interleaved with "`smoothing"'. 
+Evaluation: Different kinds of "`smoothing"', each with different kinds of outputs.
+
+\paragraph{Our Setup: Probabilistic Inference}
+
+\paragraph{Comparison: Auto Context}
+
+\paragraph{Comparison: GeoF}
+
+\paragraph{Comparison: MAP Inference}
 
 Experiments:
 \begin{enumerate}
@@ -198,9 +207,6 @@ Level 3 &  &  &  &  &  & \\
 \end{center}
 \end{table*}
 
-Discuss: 
-Glocker (1 level, AAM with inference) vs.\ last level
-
 \begin{figure*}[tb]
 \centering
 \small
@@ -227,6 +233,24 @@ Glocker (1 level, AAM with inference) vs.\ last level
 % \figpart{c}~
 (c) model fit}
 \end{figure*}
+
+\section{Discussion}
+Ours is the best :)
+
+\paragraph{Cascading Helps!}
+... performance goes up over levels. Boxplots!
+
+... "`traditional"' MAP after one level sucks. 
+
+\paragraph{Smoothing Helps! Model-based Smoothing Helps Best!}
+... Auto Context $<$ GeoF $<$ Model Based. Reason: More Specific Prior knowledge...
+
+\paragraph{Uncertainty Helps!}
+... Probabilistic inference considerably outperforms MAP inference (6\% better). Reason: With Prob.\ inference, cases can be rescued if not caught after first level (i.e.\ "`at first site"'). Show some rescue cases. 
+
+We also tried MAP after third level. Once all cases are rescued, MAP is fine (performs equally -- state numbers). BUT NOT EARLIER!
+
+
 
 \section{Overview of Idea}
 
@@ -289,7 +313,6 @@ where $I_3 = 1 - r*log(p(c))$, r is again the relative importance parameter, and
 
 \subsection{Inference on the Whole Spine}
 
-By the above method, a number of model instances would be initialized and fit, for each segment.  Each model instance has a cost associated with its fit.  Use these costs as unaries in a Markov Chain Model.  The pair-wise energy comes from statistics on the relative position of neighboring segments in the training data.  This is exactly what Glocker did already; however, we would do probabilistic inference (rather than MAP inference) and keep all the marginals.
 
 \subsection{Generating a Smoothed RF Output}
 
