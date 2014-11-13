@@ -188,22 +188,13 @@ Experiments:
 \item (AAM with probabilistic inference, tree weighting)
 \end{enumerate}
 
-\begin{table*}[t]
+\begin{figure}[t]
 \begin{center}
-\begin{tabular}{l||l|lll|lll}
-					& AutoContext & \multicolumn{3}{|c|}{GeoF} & \multicolumn{3}{|c}{AAM+Inf} \\
-					& rfOutput & rfOutput & smoothed & weighted & rfOutput & smoothed &weighted \\
-%				& median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) & median / mean(std) \\
-\hline
-Level 1 &  &  &  &  &  &  \\
-Level 2 &  &  &  &  &  & \\
-Level 3 &  &  &  &  &  & \\
-\hline
-\end{tabular}
-\caption{Evaluation on 22 datasets. median/mean(std), all 21 somites}
+\includegraphics[width=\columnwidth]{TableDiceScores.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\caption{Evaluation on 32 datasets. Dice Scores on all 21 Somites: Mean and standard deviation (in brackets).}
 \label{tab:results}
 \end{center}
-\end{table*}
+\end{figure}
 
 \begin{figure*}[tb]
 \centering
