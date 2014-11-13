@@ -66,6 +66,8 @@ Model-based Marginals for Semantic Segmentation
 
 \begin{figure}
 \includegraphics[width=0.5\textwidth]{Teaser.png}
+\caption{Teaser figure.}
+\label{fig:teaser.}
 \end{figure}
 
 
@@ -197,7 +199,7 @@ Note, adding priors doesn't slow down the code too much.  You can still use the 
 \begin{center}
 \includegraphics[width=\textwidth]{Pipeline.png} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
 \caption{Pipeline.}
-\label{tab:pipeline}
+\label{fig:pipeline}
 \end{center}
 \end{figure*}
 
@@ -302,32 +304,16 @@ Experiments:
 \end{center}
 \end{figure}
 
-\begin{figure*}[tb]
+\begin{figure}[tb]
 \centering
 \small
 \begin{center}
-%	\figpart{a}
-		(a) \includegraphics[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_RF.png} %&
-%	\quad
-%	\figpart{b}
-		(b) \includegraphics[trim=.75cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_GeoF.png} \\
-%	\,
-%	\figpart{c}
-		(c) \includegraphics[trim=.75cm 2cm 0cm 1cm,height=0.2\textheight]{gfx/boxplot_model.png} %\\
+\includegraphics[width=\columnwidth]{Cascade.jpeg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
 \end{center}
-%\includegraphics[trim=4cm 0cm 5cm 0cm, clip=true, width=0.45\textwidth]{gfx/noInpainting.png} \\
-\label{boxplots}
+\label{fig:boxplots}
 % \vspace{-2mm}
-\caption{ %Box plots of Dice scores.}
-%\figpart{a}~ 
-(a) 2 level cascade, RF output 
-%
-% \figpart{b}~
-(b) geodesic smoothing, 1st level
-%
-% \figpart{c}~
-(c) model fit}
-\end{figure*}
+\caption{3 level cascade. Segmentation accuracy of 4 methods after each level: RF output (green), GeoF (cyan), MAP (red), Ours (blue). For every method at every level, Dice scores of 21 somites in 32 images, i.e.\ 672 scores, are visualized as a \emph{box plot}~\cite{chambers1983graphical}. A colored box spans from lower to upper quartile, i.e.\ the inter-quartile range. I.e.\ 50\% of the data points lie within the box. The horizontal bar within the box depicts the median. The black diamond depicts the mean. Whiskers depict the outlier-free data range. Circles depict outliers. Outliers are defined as data points beyond median $\pm$ 2 inter-quartile ranges. }
+\end{figure}
 
 \section{Discussion}
 Ours is the best :)
