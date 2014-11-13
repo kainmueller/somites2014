@@ -166,6 +166,15 @@ Note, adding priors doesn't slow down the code too much.  You can still use the 
 
 
 \section{Method: Cascaded RF Interleaved with Probabilistic Generative Constellation Model Inference}
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=\textwidth]{Pipeline.png} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\caption{Pipeline.}
+\label{tab:pipeline}
+\end{center}
+\end{figure*}
+
+
 
 By the above method, a number of model instances would be initialized and fit, for each segment.  Each model instance has a cost associated with its fit.  Use these costs as unaries in a Markov Chain Model.  The pair-wise energy comes from statistics on the relative position of neighboring segments in the training data.  This is exactly what Glocker did already; however, we would do probabilistic inference (rather than MAP inference) and keep all the marginals.
 
