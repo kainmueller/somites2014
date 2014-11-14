@@ -164,14 +164,14 @@ The shape model is defined as follows:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The scalars $p_i$ are the \emph{shape parameters} of the model. 
+where s is a vector of coordinates of the landmarks that define the shape, n is the number of shape-modes in the model, and $p_i$ are free parameters.  Principal component analysis (PCA) yields the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The scalars $p_i$ are the \emph{shape parameters} of the model. 
 %The training data is first normalized using a Procrustes analysis with a global shape normalizing transformation to avoid modeling this variation in the shape model.
 
 The Appearance Model is defined on the base-mesh  $x$, corresponding to the mean shape $s_0$, as follows:
 
 \[A(x) = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x)\]
 
-The average appearance, $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalized} training images, i.e.\ images which have been warped onto the base-mesh. The scalars $\lambda_i$ are the \emph{appearance parameters} of the model. 
+Here m is the number of appearance-modes in the model, and $\lambda_i$ are free parameters.  The average appearance, $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalized} training images, i.e.\ images which have been warped onto the base-mesh. The scalars $\lambda_i$ are the \emph{appearance parameters} of the model. 
 
 %Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX 
 An even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a combined AAM; however, this restricts the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
@@ -182,7 +182,7 @@ For the rest of this paper, we will only refer to independent shape and appearan
 %
 % Since AAMs are generative models, they can be used to generate images which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh:
 
-Since AAMs are generative models, they can be used to generate images that can be directly compared to the input image.  Thus, fitting an AAM is a non-linear optimization problem that consists of finding the model parameters that minimize the sum-of-squared-differences between the image and the corresponding model instance, evaluated on the base mesh.  Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}.  The cost of a given fit is:
+Since AAMs are generative models, they can be used to generate images that can be directly compared to the input image.  Thus, fitting an AAM is a non-linear optimization problem that consists of finding the model parameters that minimize the sum-of-squared-differences between the image, I, and the corresponding model instance, evaluated on the base mesh.  Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}.  The cost of a given fit is:
 
 \begin{equation}
 CostAAM = \sum_{x} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
@@ -192,7 +192,7 @@ CostAAM = \sum_{x} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
 To evaluate the cost, first create a model instance by rendering an image $A(x)$ on the base-mesh. $A(x)$ is defined by appearance parameters $\lambda$. Then warp this image to a shape instance s, defined by shape parameters $p_i$.  Warping can be done using e.g., a thin-plate spline, parametrized by the set of landmarks, $s_0$ and s. This defines the unique warp parametrized by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalizing transform N(x;q), in our case a similarity transform, parameterized by q.
 
 A central challenge of AAMs is their sensitivity during the fitting process. 
-However, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted from a Bayesian viewpoint as Gaussian Regularization.
+However, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted from a Bayesian viewpoint as Gaussian regularization.
  %A popular strategy for combatting this is to add priors on the model parameters, as follows:
 %
 %\[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
@@ -253,7 +253,7 @@ Unary factors, $\phi_c(l)$, reflect the cost of the respective AAM fit, $A_c(l)$
 \end{equation}
 A parameter $\alpha$ weights the relative influence of the two terms. 
 
-The pairwise factors, $\psi_{c,b}(l,k)$, reflect the probability of relative locations of neighboring proposals. To this end, we learn the average offset between part centroids, as well as respective covariances, and assume an acccording gaussian distribution. 
+The pairwise factors $\psi_{c,b}(l,k)$ reflect the probability of relative locations of neighboring proposals. To this end, we learn the average offset between part centroids, as well as respective covariances, and assume an acccording gaussian distribution. 
 
 We compute weights for each proposal and each class by means of probabilistic inference in this CRF. In our application, the respective graphical model is a chain, and hence probabilistic inference can be performed optimally and efficiently by means of dynamic programming. 
 %
@@ -322,7 +322,7 @@ Given an initial probability map, the rationale behind geodesic smoothing is tha
 \paragraph{MAP Inference. }
 
 Finally, we consider another model-based method of smoothing: Instead of marginal distributions as new features, we use the MAP solution
-as features for the next layer. The map solution is represented as a stack of 21 binary, ``hard'' segmentations, one for each class. 
+as features for the next layer. The MAP solution is represented as a stack of 21 binary, ``hard'' segmentations, one for each class. 
 See Figure~\ref{fig:smoothing} (MAP) for examples.
 
 \subsection{Quantitative Results}
