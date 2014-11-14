@@ -115,9 +115,9 @@ We show that employing marginals instead of MAP in a cascaded feature generation
 
 Closely related to the presented work are 
 (1) Auto Context~\cite{AutoContext2008}, but they do not perform any smoothing in between levels of the cascade. 
-(2) Geodesic Forests~\cite{GeoForests2013}, but they do not use a generative structured model for smoothing. 
-(3) Cascaded classifiers interleaved with MAP inference~\cite{}, but they do not use a global generative model and do not explore marginals for inference. 
-(4) Constellation models for vertebrae and other self-similar object segmentation~\cite{Glocker2012,Glocker2013,Klinder2009471,TeethMICCAI2012,WormMiccai2014} but they do not run a cascade, and do not exploit marginal distributions. 
+(2) Geodesic Forests~\cite{GeoForests2013}, but they do not use a structured model for smoothing. 
+(3) Cascaded classifiers interleaved with MAP inference~\cite{DTF,RTF,UweCVPR2013}, but they do not use a (global generative) constellation model and do not explore marginals for inference. 
+(4) Constellation models for vertebrae and other self-similar object segmentation (like e.g.\ \cite{Glocker2012,Glocker2013,Klinder2009471,TeethMICCAI2012,WormMiccai2014}) but none of these run a cascade, and do not exploit marginal distributions. 
 
 To summarize, we claim the following three {\bf contributions}:
 \begin{itemize}
@@ -143,40 +143,44 @@ We assume that the reader is familiar with the general concept of Random Forests
 %
 In the Auto Context approach~\cite{AutoContext2008}, the probability maps yielded by a random forest are fed as features into subsequent random forests, yielding a cascade of forests.  
 %
-Interleaved inference/smoothing operates on these probability maps, and feeds ``smoothed'' versions of them into the next forest~\cite{DTF,RTF,UweCVPR2013,GeoForests2013}. 
+Interleaved inference/smoothing~\cite{DTF,RTF,UweCVPR2013,GeoForests2013} operates on these probability maps, and feeds ``smoothed'' versions of them into the next forest. 
 %
 
 
 
-\paragraph{AAM}
-Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned from training data, and are widely used e.g., for face modelling (XX need ref).  Fitting an AAM is a non-linear optimisation problem that consists of finding the model instance that minimizes the error to the input image.  Optimization is commonly done either by learning a linear mapping from the error image to parameter updates ~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters ~\cite{BakerAAM2004}. 
-
+\paragraph{Active Appearance Models. }
+Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned from training data, and are widely used e.g., for face landmark localization and medical image segmentation~\cite{Heimann2009543}. Fitting an AAM is a non-linear optimization problem that consists of finding the model instance that minimizes the error to the input image. Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}. 
+%
 The Shape Model is defined as follows:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of x,y coordinates of the landmarks that define the shape.  From PCA, $s_0$ is the mean shape, and $s_i$ are n eigenvectors corresponding to the n largest eigenvalues.  Not shown here is that the training data is first noramalised using a Procrustes analysis with a global shape normalising transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
+where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields is the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The training data is first noramalized using a Procrustes analysis with a global shape normalizing transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
 
-The Appearance Model is defined on the base-mesh, as follows:
+The Appearance Model is defined on the base-mesh  $x$, which is defined by the mean shape $s_0$, as follows:
 
 \[A(x) = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x)\]
 
-Importantly, $A_0$ and $A_i$ are computed from PCA on a set of \emph{shape normalised} training images, which have been warped onto the base-mesh $x$, which is defined by the mean shape $s_0$.  Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX Additionally, an even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a Combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm (XX cite earlier Baker paper).  For the rest of this paper, we will restrict ourselves to discussing independent shape and appearance models.
+The average appearance, i.e.\ an image $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalised} training images, i.e.\ images which have been warped onto the base-mesh. 
+%Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX 
+Additionally, an even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a Combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
+%(XX cite earlier Baker paper).  
+For the rest of this paper, we will restrict ourselves to independent shape and appearance models.
 
-Since AAMs are generative models, they can be used to create model instances which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh.
+Since AAMs are generative models, they can be used to generate images which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh:
 
 \begin{equation}
 CostAAM = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
 \label{eq:costAAM}
 \end{equation} 
 
-To create a model instance, first render an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping can be done using e.g., a piecewise affine warping over a triangulated mesh, or a thin-plate spline, parameterized by the set of landmarks, $s_0$ and s.  This defines the unique warp parameterised by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalising transform N(x;q), in our case a similarity transform, parameterized by q.
+To create a model instance, first render an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping can be done using e.g., a thin-plate spline, parametrized by the set of landmarks, $s_0$ and s. This defines the unique warp parametrized by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalizing transform N(x;q), in our case a similarity transform, parameterized by q.
 
 A central challenge of AAMs is their sensitivity during the fitting process.  A popular strategy for combatting this is to add priors on the model parameters, as follows:
 
 \[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
 
-Fortunately, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted in the Bayesian framework as Gaussian Regularization.
+AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted in the Bayesian framework as Gaussian Regularization.
 
 
 \section{Method}
