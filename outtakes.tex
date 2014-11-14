@@ -1,4 +1,17 @@
 
+
+Embracing Uncertainty: Coupling Cascaded Forest Predictors with
+Model-based Marginals for Semantic Segmentation
+
+Embracing Uncertainty: Coupling Auto-context predictors with
+Model-based Marginals for Spine Localization in Zebrafish
+
+Embracing Uncertainty: Coupling Auto-context predictors with
+Model-based Marginals for Semantic Segmentation
+
+   We mix discriminative (discr) and generative models (gen), in a smart way.
+
+
 \section{Overview of Idea}
 
 The initial idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF, which does "image aware" smoothing, using Geodesic distances.  Another potential contribution is the idea of learning the smoothing parameter.  Intuitively, it seems like the smoothing should be most active in the early stages of the cascade, when the output is most dubious, and then should decrease as you trust the output more with each iteration.
