@@ -79,7 +79,7 @@ The data term, referred to as ``features'', is derived from the image at hand, y
 %
 % from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF
 %
-Current state-of-the-art approaches typically employ pixel-wise classifiers combined with MAP inference on a (super-)pixel grid graph for semantic segmentation (e.g.\ \cite{funke2014candidate,}), or on a graphical constellation model for the localization of object parts (e.g.\ \cite{Glocker2012,Glocker2013,TeethMICCAI2012,SeifertAnatomicalSPIE2009}).  
+Current state-of-the-art approaches typically employ pixel-wise classifiers combined with MAP inference on a (super-)pixel grid graph for semantic segmentation~\cite{TextonBoost,Schroff08objectclass} (see also e.g.\ \cite{funke2014candidate}), or on a graphical constellation model for the localization of object parts (e.g.\ \cite{Glocker2012,Glocker2013,TeethMICCAI2012,SeifertAnatomicalSPIE2009}).  
 %
 A recent trend in computer vision is to learn deep, \emph{cascaded} models for feature generation, such as CNNs~\cite{NIPS2012_4824} (see also e.g.\ \cite{funke2014candidate}) and Auto-Context Models~\cite{AutoContext2008} (see also e.g.\ \cite{PoseMachinesECCV2014}). 
 %
