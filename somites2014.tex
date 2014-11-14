@@ -149,24 +149,28 @@ Interleaved inference/smoothing~\cite{DTF,RTF,UweCVPR2013,GeoForests2013} operat
 
 
 \paragraph{Active Appearance Models. }
-Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned from training data, and are widely used e.g., for face landmark localization and medical image segmentation~\cite{Heimann2009543}. Fitting an AAM is a non-linear optimization problem that consists of finding the model instance that minimizes the error to the input image. Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}. 
+We employ active appearance models~\cite{CootesAAM2001} for generating binary \emph{candidate segmentations} for each class in the semantic segmentation task (cf.\ Sec.\ \ref{subsec:hyps}). 
+
+AAMs are linear, generative, parametric models of shape and appearance that are learned from training data, and are widely used e.g., for face landmark localization and medical image segmentation~\cite{Heimann2009543}. 
 %
-The Shape Model is defined as follows:
+The shape model is defined as follows:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields is the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The training data is first noramalized using a Procrustes analysis with a global shape normalizing transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
+where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields is the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The training data is first normalized using a Procrustes analysis with a global shape normalizing transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
 
 The Appearance Model is defined on the base-mesh  $x$, which is defined by the mean shape $s_0$, as follows:
 
 \[A(x) = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x)\]
 
-The average appearance, i.e.\ an image $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalised} training images, i.e.\ images which have been warped onto the base-mesh. 
+The average appearance, i.e.\ an image $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalized} training images, i.e.\ images which have been warped onto the base-mesh. 
 %Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX 
-Additionally, an even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a Combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
+Additionally, an even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
 %(XX cite earlier Baker paper).  
 For the rest of this paper, we will restrict ourselves to independent shape and appearance models.
 
+Fitting an AAM is a non-linear optimization problem that consists of finding the model instance that minimizes the error to the input image. Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}. 
+%
 Since AAMs are generative models, they can be used to generate images which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh:
 
 \begin{equation}
@@ -176,15 +180,17 @@ CostAAM = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(
 
 To create a model instance, first render an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping can be done using e.g., a thin-plate spline, parametrized by the set of landmarks, $s_0$ and s. This defines the unique warp parametrized by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalizing transform N(x;q), in our case a similarity transform, parameterized by q.
 
-A central challenge of AAMs is their sensitivity during the fitting process.  A popular strategy for combatting this is to add priors on the model parameters, as follows:
+A central challenge of AAMs is their sensitivity during the fitting process. 
+However, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted from a Bayesian viewpoint as Gaussian Regularization.
+ %A popular strategy for combatting this is to add priors on the model parameters, as follows:
+%
+%\[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
 
-\[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
-
-AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted in the Bayesian framework as Gaussian Regularization.
 
 
 \section{Method}
-Given an image as input, we seek a pixel-wise multi-class labelling as output, i.e.\ a \emph{semantic segmentation}. 
+\label{sec:method}
+Given an image as input, we seek a pixel-wise multi-class labeling as output, i.e.\ a \emph{semantic segmentation}. 
 %
 We assume that a model of the spatial relation of classes can be learned, i.e.\ a \emph{constellation model}. This is the case for many applications, as e.g.\ body part segmentation in natural~\cite{PoseMachinesECCV2014} or medical images~\cite{SeifertAnatomicalSPIE2009}, vertebra segmentation~\cite{Glocker2012,Glocker2013}, etc. 
 %
@@ -231,101 +237,92 @@ Note that here, for the sake of notation simplicity, we assume we have the same 
 
 The unary factors, $\phi_c(l)$, reflect the cost of the respective AAM fit, $A_c(l)$, together with the RF probability map $P_c:\Omega\rightarrow [ 0,1 ]$, accumulated over the foreground of the respective binary segmentation, $H_{c,l}: \Omega\rightarrow \{0,1\}$: 
 \begin{equation}
-\phi_c(l) = \exp{(-\lambda\cdot CostAAM_c(l))} \cdot \frac{\sum_{x,y} H_{c,l}(x,y)\cdot P_c(x,y)}{\sum_{x,y} H_{c,l}(x,y)}
+\phi_c(l) = \exp{(-\alpha\cdot CostAAM_c(l))} \cdot \frac{\sum_{x,y} H_{c,l}(x,y)\cdot P_c(x,y)}{\sum_{x,y} H_{c,l}(x,y)}
 \label{eq:unaries}
 \end{equation}
-A parameter $\lambda$ weights the relative influence of the two terms. 
+A parameter $\alpha$ weights the relative influence of the two terms. 
 
 The pairwise factors, $\psi_{c,b}(l,k)$, reflect the probability of relative locations of neighboring proposals. To this end, we learn the average offset between part centroids, as well as respective covariances, and assume an acccording gaussian distribution. 
 
 We compute weights for each proposal and each class by means of probabilistic inference in this CRF. In our application, the respective graphical model is a chain, and hence probabilistic inference can be performed optimally and efficiently by means of dynamic programming. 
 %
 Given the resulting marginals $p_c(l)$, we compute a weighted average of part proposals: 
-\[ S_c(x,y) = \frac{1}{Z(x,y)} \cdot \sum_{l\in L} p_c(l)\cdot H_{c,l}(x,y) \]
+\begin{equation}
+ S_c(x,y) = \frac{1}{Z(x,y)} \cdot \sum_{l\in L} p_c(l)\cdot H_{c,l}(x,y) 
+\label{eq:weighting}
+\end{equation}
+%
 Here, $Z(x,y)$ serves for pixel-wise re-normalization; I.e., $Z(x,y)=\sum_{c\in C}\sum_{l\in L} p_c(l)\cdot H_{c,l}(x,y)$.
 %
 We call $S_c$ a \emph{smoothed probability map} for class $c$. 
 
-\subsection{Parameters}
-... to be put into respective equations spread everywhere...
-\begin{itemize}
-\item n: \# of shape modes
-\item m: \# of appearance modes
-\item $\lambda$: trust in image cost vs.\ discr output
-\item $n_L$: \# of model instances that are initialized for fitting
-\item g: \# of grad descent steps
-\end{itemize}
+\section{Results and Discussion}
 
-\section{Results}
+We applied our semantic segmentation approach to a data set of 32 images of developing zebrafish, where the goal is semantic segmentation of the 21 segments of the spine, called~\emph{somites}. In a pre-processing step, all images were aligned to a reference image by rigid registration. Experts in biology manually created ground truth segmentations of these images. A segmentation exhibits 22 classes, corresponding to 21 segments and the background. This data set poses multiple challenges for automated segmentation, (1) due to the similar appearance of neighboring segments, and (2) due to the the small amount of training data.
 
-We applied our semantic segmentation approach to a data set of 32 images of developing zebrafish, where the goal is dense classification of each segment of the developing spine.  We manually segment these images into 22 classes, corresponding to 21 segments and the background.  This data set poses multiple challenges, due to the similar appearance of neighboring segments, and the small amount of training data.
+We approach this problem by interleaving a cascaded random forest classifier with model fitting probabilistic inference to generate new, smoothed, features for the next level of the cascade, as described in Section~\ref{sec:method}. 
+%
+We provide comparisons of our approach with a range of other cascaded random forest classifiers, including Auto-context~\cite{AutoContext2008}, GeoF~\cite{GeoForests2013}, and MAP instead of probabilistic inference, as well as with the state-of-the-art approach for spine detection.  See Figure \ref{fig:smoothing} for an overview of the different types for inference/smoothing that we evaluate.  We evaluate all algorithms in terms of the Dice score averaged over all 21 foreground classes of the 32 images, using two-fold cross-validation.
 
-We approach this problem by interleaving a cascaded random forest classifier with model fitting probabilistic inference to generate new, smoothed, features for the next level of the cascade.  As such, we provide comparisons with a range of other cascaded random forest classifiers, including Auto-context (XX cite), GeoF (XX cite), and MAP cascade (XX cite), as well as with the state-of-the-art approach for spine detection.  See Figure \ref{fig:smoothing} for an overview of the different types for inference/smoothing that we evaluate.  We evaluate all algorithms in terms of the Dice score averaged over all 22 classes of the 32 images, using two-fold cross validation.
-
-\begin{figure}[t]
+\begin{figure*}[t]
 \begin{center}
-\includegraphics[width=\columnwidth]{smoothing.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\includegraphics[width=0.8\textwidth]{smoothing.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
 \caption{In our evaluation we interleave different types of inference/smoothing into our cascaded random forest pipeline for semantic segmentation of somites (i.e.\ vertebrae) in zebra-fish embryos. 
 %
 The Figure shows examples of the types of inference/smoothing we evaluate. 
 Left: Exemplary zebra-fish embryo. Boxes (1,2): Exemplary somites. Right: Close-ups on probability maps of the respective class labels. Note that close-ups on (2) are rotated by 90 degrees. 
 %
-Four versions of smoothing/inference: (RF) random forest probability map; (GeoF) smoothed by geodesic smoothing\cite{GeoF2013}; (MAP) "`smoothed"' by MAP inference in our constellation model, yielding a binary "`probability map"'; 
+Four versions of smoothing/inference: (RF) random forest probability map; (GeoF) smoothed by geodesic smoothing~\cite{GeoForests2013}; (MAP) ``smoothed'' by MAP inference in our constellation model, yielding a binary ``probability map''; 
 %
-(MM) "`smoothed"' by our proposed approach, i.e.\ probabilistic inference in our constellation model.  }
+(MM) ``smoothed'' by our proposed approach, i.e.\ probabilistic inference in our constellation model.  }
 \label{fig:smoothing}
 \end{center}
-\end{figure}
+\end{figure*}
 %
 
 
 \paragraph{Ours. }
 
-XX remove or expand.  Our approach is inspired by the success of stacked classifiers, such as autocontext, and the observation that feature smoothing is a promising approach for introducing prior information into the learning process.
+We begin by training a random forest of 16 trees, each with maximum depth 12, on features stemming from a standard filter bank~\cite{hall2009weka}.  Additionally, we employ the use of contextual features. 
+Contextual features are generated by evaluating the filter bank response at a random offset to the current pixel, and either thresholding on this value directly, or taking the difference between this value at the current pixel.  
+%We find that the use of contextual features is essential for disambiguating between segments with near identical appearance and giving a good initialization of the constellation model.  These parameters are used during the comparison of all the following methods.
 
-We begin by training a random forest of 16 trees, each with maximum depth 12, on features stemming from a standard filter bank.  These features are precomputed using the Weka Trainable Segmentation Plug-In (FIJI).  Additionally, we employ the use of contextual features which have been shown to perform very well in anatomical labeling tasks (XX ref Criminisi).  Contextual features are generated by evaluating the filter bank response at a random offset to the current pixel, and either thresholding on this value directly, or taking the difference between this value at the current pixel.  We find that the use of contextual features is essential for disambiguating between segments with near identical appearance and giving a good initialization of the constellation model.  These parameters are used during the comparison of all the following methods.
+During training, we use different subsets of the training data at each level of the cascade, to avoid over-fitting the small data set. As additional ``synthetic'' training data we generate two random rotations (+/- 10 degrees) for each training image.  The remaining training data at each level is then used to build a constellation model for the backbone, and an active appearance model for every individual segment.  To initialize the AAMs for fitting, we find the mode of the RF output for each class using mean shift, and then fit the rigid constellation model to this.  We additionally recenter each AAM on the mode of RF output for its corresponding class.  From these two sets of initializations, we generate many more by sampling locally along the axis of the constellation model, and then run gradient descent to fit each AAM instance to the input image.  Fitting is done over 6 parameters, one shape parameter, one appearance parameter, and an additional four parameters for the similarity transformation.
 
-During training, we use a different subset of the data at each level of the cascade, to avoid overfitting the small data set.  Additionally, we generate two additional random rotations (+/- 10 degrees) for each training instance.  The remaining data at each level is then used to build a constellation model for the backbone, and an active appearance model for every individual segment.  To initialize the AAMs for fitting, we find the mode of the RF output for each class using mean shift, and then fit the rigid constellation model to this.  We additionally recenter each AAM on the mode of RF output for its corresponding class.  From these two sets of initializations, we generate many more by sampling locally along the axis of the constellation model, and then run gradient descent to fit each AAM instance to the input image.  Fitting is done over 6 parameters, one shape parameter, one appearance parameter, and an additional four parameters for the similarity transformation.
-
-(XX next bit is crap.  it's repeated from methods, so wasn't sure what to say exactly)
-Each AAM fit yields a hypothetical segmentation of the corresponding class; however, there is not yet any global consistency imposed.  To introduce this feature, we do probabilistic inference over the chain using Belief Propagation.  The resulting marginals are then used to scale the mask of the corresponding fit, and finally a posterior probability distribution is calculated for every pixel by renormalizing the weighted fit masks over all classes (XX see equation 2?).  See \ref{fig:smoothing}, MM.
-
+Each AAM fit yields a hypothetical segmentation of the corresponding somite; however, there is not yet any global consistency imposed.  To introduce this feature, we do probabilistic inference over the chain using Belief Propagation.  The resulting marginals are then used to scale the mask of the corresponding fit, and finally a posterior probability distribution is calculated for every pixel by re-normalizing the weighted fit masks over all classes (cf.\ Equation~\eqref{eq:weighting}).  See Figure~\ref{fig:smoothing} (MM) for examples of probability maps induced by the marginals of the constellation model.
 
 \paragraph{Auto Context. }
 
-The canonical example of stacked classifiers is Auto-context, where the RF output is sampled over a regular grid of offsets, and these features are used in the next level of a cascade.  Since our random forests already sample the local features, we evaluate the performace of Auto-context by simply concatenting the RF output as additional features in the next layer.  See \ref{fig:smoothing}, RF, for examples of how the RF output looks.
+The canonical example of stacked classifiers is Auto-context, where the RF output is sampled over a regular grid of offsets, and these features are used in the next level of a cascade.  Since our random forests already sample the local features, we evaluate the performace of Auto-context by simply concatenating the RF output as additional features in the next layer.  See Figure~\ref{fig:smoothing} (RF) for examples of how the RF output looks.
 
 \paragraph{GeoF. }
-The simplest way to generate a smoothed RF Output is to re-use the Geodesic smoothing idea from Criminisi.  Let:
+An ``image aware'' smoothed RF Output can also be generated in a model-agnostic fashion, by geodesic smoothing~\cite{GeoForests2013}. 
+Given an initial probability map, the rationale behind geodesic smoothing is that pixels with a small geodesic distance to a pixel with high probability should be up-weighted, and otherwise down-weighted. Smoothing is accomplished indirectly, as a competition between different possible class labels for a given pixel, mediated by pixel-wise normalization. See~\cite{GeoForests2013} for details, and Figure~\ref{fig:smoothing} (GeoF) for examples.
 
-\[ Q(x; M, \nabla I) = \min_{x'} (\delta (x,x') + \nu M) \]
-
-and $\nu$ is some free parameter.  Note, x and x' are two points in the image. $M(x') = 1 - p(c|v(x'))$, where v(x') is the feature vector at pixel x'.  Then the smoothed RF output is calculated as:
-
-\[ g(c|v(x)) = \frac{1}{Z} p(c|v(x)) e^{\frac{-Q(x;p(c|v(\Omega)),\nabla J)^2}{\sigma ^2}} \]
-
-This accomplishes smoothing in quite an indirect way, as a competition between different possible class labels for a given pixel, mediated by the normalization Z.  Moreover, this smoothing is completely model agnostic.  We observe that GeoF sometimes generates smooth posteriors across individual segments; however this sensitively depends on the local texture of the image.  See \ref{fig:smoothing}, GeoF, for examples.
+%\[ Q(x; M, \nabla I) = \min_{x'} (\delta (x,x') + \nu M) \]
+%
+%and $\nu$ is some free parameter.  Note, x and x' are two points in the image. $M(x') = 1 - p(c|v(x'))$, where v(x') is the feature vector at pixel x'.  Then the smoothed RF output is calculated as:
+%
+%\[ g(c|v(x)) = \frac{1}{Z} p(c|v(x)) e^{\frac{-Q(x;p(c|v(\Omega)),\nabla J)^2}{\sigma ^2}} \]
+%
+%This accomplishes smoothing in quite an indirect way, as a competition between different possible class labels for a given pixel, mediated by the normalization Z.  Moreover, this smoothing is completely model agnostic.  We observe that GeoF sometimes generates smooth posteriors across individual segments; however this sensitively depends on the local texture of the image.  See 
 
 \paragraph{MAP Inference. }
 
-Finally, we consider another model-based method of smoothing.  This approach is exteremely similar to ours; however, at every level the MAP solution of the constellation model is used as features to the next layer.  This returns hard decisions about the class of every pixel, see \ref{fig:smoothing}, MAP.
+Finally, we consider another model-based method of smoothing: Instead of marginal distributions as new features, we use the MAP solution
+as features for the next layer. The map solution is represented as a stack of 21 binary, ``hard'' segmentations, one for each class. 
+See \ref{fig:smoothing} (MAP) for examples.
 
 \paragraph{Quantitative Results}
-
-Autocontext is the simplest approach that we consider, and it returns a final Dice score of 0.60 (sd=0.20) after three levels (\ref{tab:results}).  Interestingly, all of the methods that we tried stopped improving after three levels of cascading, presumably due to the small size of the data set.  In contrast to Auto-context, GeoF generates significantly smoother posteriors, and performs better at every level of the cascade (\ref{fig:boxplots}).  The best score obtained by GoeF was 0.66 (sd=0.22) after three levels, when evaluated on its smoothed output.  This increase of 0.06 is comparable to the gains reported in (XX ref GeoF) when applying geodesic smoothing, without additionally changes to the training objective.
-
-The next method that we tried was MAP Inference, which computes the optimal configuration of the constellation model as smooth features into the next level.  MAP Inference performs considerably better than the previous techniques after the first level of the cascade, with a mean Dice Score of XX.  This approach also improves over the cascade, reaching a final Dice Score of 0.76 (sd=0.27) after three levels, when evaluated on the MAP output.
-
-Finally, our approach yielded the highest Dice Score of 0.82 (sd=0.18) after three levels of cascading.  The main difference that we observed between our technique and MAP inference was a dramatic increase in the mean Dice Score and reduction in the standard deviation over the 3 levels, which we account to \'rescuing\' outliers (\ref{fig:rescue}).
-
+%
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=\columnwidth]{TableDiceScores_2columns_noGeoF2.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Evaluation on 32 datasets. Dice Scores on all 21 Somites: Mean and standard deviation (in brackets).}
+\caption{Evaluation on 32 datasets. Dice Scores on all 21 Somites: Average (over 32x21 values), and standard deviation (in brackets). Left column: Segmentations obtained from RF-generated probability maps, by assigning to each pixel the class with the highest probability. Right column: Segmentations obtained from repective ``smoothed'' RF probability maps.}
 \label{tab:results}
 \end{center}
 \end{figure}
-
+%
 \begin{figure}[tb]
 \centering
 \small
@@ -336,11 +333,32 @@ Finally, our approach yielded the highest Dice Score of 0.82 (sd=0.18) after thr
 % \vspace{-2mm}
 \caption{3 level cascade. Segmentation accuracy of 4 methods after each level: RF output (green), GeoF (cyan), MAP (red), Ours (blue). For every method at every level, Dice scores of 21 somites in 32 images, i.e.\ 672 scores, are visualized as a \emph{box plot}~\cite{chambers1983graphical}. A colored box spans from lower to upper quartile, i.e.\ the inter-quartile range. I.e.\ 50\% of the data points lie within the box. The horizontal bar within the box depicts the median. The black diamond depicts the mean. Whiskers depict the outlier-free data range. Circles depict outliers. Outliers are defined as data points beyond median $\pm$ 2 inter-quartile ranges. }
 \end{figure}
+%
+Figure~\ref{tab:results} lists Dice scores for all four methods described above, after three levels of the cascade.\footnote{Note that interestingly, all of the methods that we evaluate stopped improving accuracy after three levels of cascading, presumably due to the small size of the training data set and respective over-fitting.} The first column states Dice scores obtained for segmentations generated by assigning to each pixel the class with highest probability in the RF output. The second column states Dice scores obtained analogously from the respective smoothed RF output. Figure~\ref{fig:boxplots} shows box plots of the Dice scores obtained from the smoothed RF output (cf.\ second column of Figure~\ref{tab:results}), at all three levels of the cascade. 
+
+Auto-context returns a final average Dice score of 0.60 (sd=0.20) after three levels (cf.\ Figure~\ref{tab:results}, 1st row). 
+%
+Compared to Auto-context, GeoF generates considerably smoother posteriors, and performs better at every level of the cascade (see green vs.\ cyan box plots in Figure~\ref{fig:boxplots}). The best average score obtained by GoeF was 0.66 (sd=0.22) after three levels  (cf.\ Figure~\ref{tab:results}, 2nd row), when evaluated on its smoothed output. This increase of 6\% is comparable to the gains reported in~\cite{GeoForests2013} when applying geodesic smoothing without changing the training objective.
+%
+Solely after the first level of the cascade does MAP Inference perform best among all approaches (red box plots in Figure~\ref{fig:boxplots}), with a mean Dice Score of 0.66 (sd=0.36). This approach also improves over the cascade, reaching a final Dice Score of 0.76 (sd=0.27) after three levels, when evaluated on the MAP output (cf.\ Figure~\ref{tab:results}, 3rd row). 
+%
+However, our approach of replacing MAP by marginals yields the highest overall average Dice Score of 0.82 (sd=0.18) (cf.\ Figure~\ref{tab:results}, 4th row), outperforming MAP by 6\%. 
+%
+With our approach, the accuracy increases considerably from level to level (blue box plots in Figure~\ref{fig:boxplots}). 
 
 
+\paragraph{Uncertainty To the Rescue! }
+%
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=\columnwidth]{rescue.png} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\caption{Exemplary failure case that is ``rescued'' by our approach (probabilistic inference) over the levels of the cascade, but not by MAP inference. Arrows point to ground truth start end end of spine. Columns: Three levels of the cascade: Top row: MAP inference. Bottom row: Ours (probabilistic inference). After the first level, segmentations are off by one somite in both approaches. This stays constant for MAP. Our approach, however, gradually rescues this case and obtains a correct segmentation after level three of the cascade.}
+\label{fig:rescue}
+\end{center}
+\end{figure}
+%
+The main difference that we observed between our technique (probabilistic inference) and MAP inference was a dramatic increase in the mean Dice Score and reduction in the standard deviation over the 3 levels of the cascade. We observe that this is due to failure cases that are ``rescued'' by our approach, but not by MAP, as shown in Figure~\ref{fig:rescue}.
 
-\section{Discussion}
-Ours is the best :)
 
 \paragraph{Cascading Helps!}
 ... performance goes up over levels. Boxplots!
@@ -350,21 +368,9 @@ Ours is the best :)
 \paragraph{Smoothing Helps! Model-based Smoothing Helps Best!}
 ... Auto Context $<$ GeoF $<$ Model Based. Reason: More Specific Prior knowledge...
 
-\paragraph{Uncertainty Helps!}
-... Probabilistic inference considerably outperforms MAP inference (6\% better). Reason: With Prob.\ inference, cases can be rescued if not caught after first level (i.e.\ "`at first site"'). Show some rescue cases. 
-
-We also tried MAP after third level. Once all cases are rescued, MAP is fine (performs equally -- state numbers). BUT NOT EARLIER!
-
 Dave, in the rescue figure, please call the bottom row "`Ours"', and maybe re-arrange rows as columns so that the figure fits into one column without being too small. 
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=\columnwidth]{rescue.png} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Rescue Case. Arrows point to ground truth start end end of spine. }
-\label{fig:rescue}
-\end{center}
-\end{figure}
 
-
+\section{Conclusion}
 
 {\small
 \bibliographystyle{ieee}
