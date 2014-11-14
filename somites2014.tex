@@ -380,6 +380,16 @@ A first observation makes a point for the conventional approach of feature gener
 %
 
 \section{Conclusion}
+%
+We have presented \emph{UFO}, an uncertain active constellation model interleaved with a cascaded forest predictor, for the task of semantic segmentation.
+%
+The core finding of our work is that probabilistic inference in the constellation model yields considerably better segmentation accuracy in a hard 21-class semantic segmentation task, as compared to the common MAP inference.
+%
+Marginals of the constellation model allow for maintaining uncertainty in the predictions and hence help avoid sticking to a (MAP) solution too early in a cascade. 
+
+Future work will reveal whether marginals are similarly beneficial in applications that come with \emph{pixel level} structured models instead of constellation models.
+
+Our findings are of impact not only for the many types of constellation models employed in related work, but also for the recent trend of learning deep models combined with physically motivated structured models. 
 
 {\small
 \bibliographystyle{ieee}
