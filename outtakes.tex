@@ -11,6 +11,12 @@ Model-based Marginals for Semantic Segmentation
 
    We mix discriminative (discr) and generative models (gen), in a smart way.
 
+are concerned with new ways to interleave feature generation, via deep learning models, and inference in structured models, guided by physical principles. This is in our view one of the most crucial questions for making a step forward in dense labeling tasks. For this we will consider the task of semantic segmentation with an active constellation model; That means that the parts are defined via active shape and appearance models~\cite{CootesAAM2001}. Motivated by recent work~\cite{UweCVPR2013} on cascaded regression Forests with interleaved Gaussian Conditional Random Fields w
+
+To solve this task, two major trends in computer vision have played an important role in the last decades.  The first, well studied, trend is to infer the MAP or Max-Marginal solution in a so-called structured model,. Here structure models mean that neighboring pixels in an image do not make independent decisions, e.g. neighboring pixels are likely to take the same label. The form of the potential functions in the structure model is based on two sources of information.  On one hand it is guided by {\bf physical principles}, such as the kinematics of a person. On the other hand, in many applications the potential functions have to be derived from the input data itself. This brings us to the second, more recent, major trend in computer vision, namely learning deep models, such as CNNs~\cite{NIPS2012_4824}, Auto-Context Models~\cite{AutoContext2008,PoseMachinesECCV2014} or Cascaded Forest predictors [DTF,RTF,GeoF,Uwe]. 
+
+The classical example of how to use these trends from semantic segmentation (see e.g.\ []) is to train a deep model, e.g. cascaded forest predictor, from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF, where the pairwise potentials, e.g.\ on a 4-connected grid, are gradient-weighted Potts-model terms. 
+%
 
 \section{Overview of Idea}
 

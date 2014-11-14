@@ -61,42 +61,77 @@ We believe that our findings are not only relevant for other types of constellat
 
 \section{Introduction}
 Many tasks in computer vision have as input an image and as output a dense labeling, where each pixel is assigned one out of many pre-defined classes. An example is a sematic segmentation of a person in an image, where each pixel is assigned a label such as “background”, “left leg”, or “head”. 
-To solve this task, two major trends in computer vision have played an important role in the last decades.  The first, well studied, trend is to infer the MAP or Max-Marginal solution in a so-called structured model, such as a Conditional Random Field (CRFs). Here structure models mean that neighboring pixels in an image do not make independent decisions, e.g. neighboring pixels are likely to take the same label. The form of the potential functions in the structure model is based on two sources of information.  On one hand it is guided by {\bf physical principles}, such as the kinematics of a person. On the other hand, in many applications the potential functions have to be derived from the input data itself. This brings us to the second, more recent, major trend in computer vision, namely learning deep models, such as CNNs~\cite{NIPS2012_4824}, Auto-Context Models~\cite{AutoContext2008,PoseMachinesECCV2014} or Cascaded Forest predictors [DTF,RTF,GeoF,Uwe]. These models play the role of learning a complex non-linear mapping from images to features which are relevant for the task at hand. 
+%
+So-called structured models, such as a Conditional Random Field (CRFs), are often used for semantic segmentation. 
+Depending on the prior knowledge about the task at hand, the underlying graph may be a (super-)pixel grid, or a graphical constellation model that captures relative locations of multiple parts of an object. 
+%
+Furthermore, knowledge about distinct shapes of sought objects or parts of objects is often captured by means of statistical shape and appearance models. 
 
-The classical example of how to use these trends from semantic segmentation (see e.g.\ []) is to train a deep model, e.g. cascaded forest predictor, from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF, where the pairwise potentials, e.g.\ on a 4-connected grid, are gradient-weighted Potts-model terms. This modelling framework is however very static: first features are generated and then the dense labeling, e.g. MAP solution, is inferred. For instance, in order to optimize test-time performance, the first question is about the appropriate run-time trade-off between generating features and performing inference. Oftentimes, MAP inference is NP-hard and considerable more time is spend on MAP inference than feature generation. On the other hand, better features lead often to models with potential simpler MAP inference problems, since they relate to stronger unary potentials. This simple discussion motivates that one has to think of the two steps in a more holistic fashion – which is the goal of this work.
+All these models commonly capture the task of semantic segmentation via an objective function that is composed of a data term and a prior. 
+%
+The data term, referred to as "`features"', is derived from the image at hand, yielding pixel-wise distributions over class labels. The prior is enforced subsequently. 
+%
+% from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF
+%
+Classical approaches employ pixel-wise classifiers combined with MAP inference on a (super-)pixel grid graph for segmentation [], or with MAP inference on a graphical constellation model for the localization of object parts [Glocker, Dental,Worm, SeifertAbdominal].  
+%
+This modelling framework is however very static, as it separates feature generation and inference (i.e.\ "`model fitting"'). 
 
-In this work we are concerned with new ways to interleave feature generation, via deep learning models, and inference in structured models, guided by physical principles. This is in our view one of the most crucial questions for making a step forward in dense labeling tasks. For this we will consider the task of semantic segmentation with an active constellation model; That means that the parts are defined via active shape and appearance models~\cite{CootesAAM2001}. Motivated by recent work~\cite{UweCVPR2013} on cascaded regression Forests with interleaved Gaussian Conditional Random Fields we suggest a cascaded pipeline that is illustrated in Figure 1. The most important aspect of this cascade is the question of what to infer from the constellation at intermediate stages of the cascade. Various ideas come to mind: Marginals or MAP solution of the MRF-based constellation model. These are opposed to model-agnostic geodesic smoothing as suggested by~\cite{GeoForests2013}. One of the main aspects of this work is to study these trade-offs. We see that for model-based segmentation of spines in zebra-fish, soft marginals are a clear winner. The reason is that individual parts (so-called somites) are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. Marginals help to not commit to a wrong solution in the early stages of the cascade.
+A recent trend in computer vision is to learn deep, \emph{cascaded} models for feature generation, such as CNNs~\cite{NIPS2012_4824} (see also e.g.\ \cite{funke2014candidate}) and Auto-Context Models~\cite{AutoContext2008} (see also e.g.\ \cite{PoseMachinesECCV2014}). 
+%
+These models play the role of learning a complex non-linear mapping from images to features which are relevant for the task at hand. 
+%
+Beyond cascading, it has been shown that better features can be generated by \emph{interleaving} feature generation with MAP inference in pixel-grid structured models~\cite{DTF,RTF,UweCVPR2013} 
+%
+or model agnostic smoothing smoothing~\cite{GeoForests2013}.\footnote{Note that this is different from the classical "`hierarchical"' approach that, purely for the sake of run-time, performs feature generation and inference multiple times on different scales (see e.g.\ \cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} [check!]).}
+
+In this work we take the idea of interleaving feature generation and inference a step further: 
+%
+Instead of interleaving feature generation with a pixel-level structured model or model-agnostic smoothing, we interleave with a global, generative \emph{active constellation model}. By this term we refer to a graphical constellation model, where the individual object parts are captured by \emph{active appearance models}~\cite{CootesAAM2001}. 
+%
+We suggest a cascaded pipeline that is illustrated in Figure~\ref{fig:pipeline}. 
+% 
+The most important aspect of this cascade is the question of what to infer from the constellation at intermediate stages of the cascade. 
+%
+"`Model based"' options are marginals or MAP solution of the MRF-based constellation model. A model-agnostic, yet "`image-aware"' alternative is geodesic smoothing~\cite{GeoForests2013}. 
+%
+One of the main aspects of this work is to study the trade-offs that come with these options. 
+
+We show that soft marginals are a clear winner for an application concerned with semantic segmentation of many self-similar structures, namely vertebrae in spines of zebra-fish embryos. 
+%
+(These vertebrae are called "`somites"'.) 
+%
+The reason that \emph{uncertainy is beneficial} is that individual somites are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. 
+%
+Related work has tackled semantic segmentation of vertebrae (in CT scans of humans) via the classical "`feature generation followed by MAP in a constellation model"' approach~\cite{Glocker2013}.
+%
+We show that marginals instead of MAP helps to not commit to a wrong solution in the early stages of a cascade, and leads to a major increase in resulting segmentation accuracy. 
+
+Closely related to the presented work are 
+(1) Auto Context~\cite{AutoContext2008}, but they do not perform any smoothing in between levels of the cascade. 
+(2) Geodesic Forests~\cite{GeoForests2013}, but they do not use a generative structured model for smoothing. 
+(3) Cascaded classifiers interleaved with MAP inference~\cite{}, but they do not use a global generative model and do not explore marginals for inference. 
+(4) Constellation models for vertebrae segmentation~\cite{Glocker2012,Glocker2013} but they do not run a cascade. 
+
 To summarize, we claim the following three {\bf contributions}:
 \begin{itemize}
-\item In the field of model-based semantic segmentation we are the first to interleave feature generation and model-based inference. We show that this boost performance considerably, compared to not cascading. Note, related hierachical appraoches~\cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} focus on speed not quality that comes form feature generation. 
+\item In the field of model-based semantic segmentation we are the first to interleave feature generation and model-based inference. We show that this boost performance considerably, compared to not cascading. 
+% Note, related hierachical appraoches~\cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} focus on speed not quality that comes form feature generation. 
 \item We show, for the first time, that probabilistic inference gives a major (6\%) boost in performance in cascaded MRF-Forest-based models. This is compared to standard MAP inference (as e.g.\ in \cite{Glocker2013,SeifertAnatomicalSPIE2009,TeethMICCAI2012}) and model-agnostic geodesic smoothing~\cite{GeoForests2013}. 
 \item We are the first to tackle spine detection in zebra fish, where we achieve an overall average Dice score of 82\%.
 \end{itemize}
 
 
 
-%%%%%%%%% BODY TEXT
-\section{IntroductionOld}
-The idea is to do "model-based smoothing" of the output of a Random Forest classifier, in an iterative or cascaded fashion.  This generalizes the idea proposed by GeoF~\cite{GeoForests2013}, which does "image aware" smoothing, using Geodesic distances. 
+ToDo: Work in or leave out:
 %
 Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output. 
-
-Our contributions: 
 %
-(1) Use Active Appearance Model and HMM for "`image aware"' smoothing in a RF cascade. 
-Closest works: 
-First, AutoContext~\cite{AutoContext2008}, but they don't do any smoothing. 
-Second, GeoF~\cite{GeoForests2013}, but they don't use a generative model for smoothing. 
-Third, Glocker, either with Classification Forests~\cite{Glocker2013} or Regression Forests~\cite{Glocker21012}, but they do not run a cascade. 
+Additional Literature: 
 %
-%(2) Tree weighting based on smoothing. Can be combined with any kind of smoothing. Idea: rate the trees of a forest: who agrees most with the smoothed output? This way, ...
-%%
-
-Additional Literature.
-\begin{enumerate}
-\item Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
-\item Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
-\end{enumerate}
+Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
+%
+Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
 
 
 \section{Background / Related work}
@@ -172,10 +207,6 @@ where r is the parameter that captures how much we trust the discr model output 
 Note, adding priors doesn't slow down the code too much.  You can still use the same fitting algorithm, there's just some extra computation in each loop.
 
 \emph{Related work on SSMs and Random Forests: }
-
-Cootes Femur TMI 2013~\cite{CootesFemurTMI2013}
-
-Cootes Regression Forest + SSM ECCV 2012~\cite{CootesECCV2012RRFandSSM}
 
 
 
