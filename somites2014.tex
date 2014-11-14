@@ -48,8 +48,12 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-We consider the task of model-based semantic segmentation. The model is described by a constellation model of parts that are represented by active shape- and appearance models. We term this an active constellation model. As a running example we utilize a 21-part, chain-based spine model of a zebra fish observed in microscopic images. The prevailing approach to solve this task is to first generate pixel-independent features for each part, e.g.\ via a cascaded decision forest predictor, which are then fed into an MRF-based model-fitting objective to infer the optimal MAP solution of the constellation model. Our key contribution is to abandon this static, two-stage approach and mix feature generation and model-based inference in a new, more flexible, way. In particular we interleave the cascaded forest predictors with inference steps for the model-fitting. A key finding is that “uncertain” model-outputs at intermediate stages of the cascade, in the form of part-based marginals, are essential for best performance. This is because, on one hand the semantic segmentation is guided by the model, and on the other hand correct solutions, which are different to intermediate MAP solution, can still be found. We validate our findings with an in-depth study of alternative inference steps, including popular geodesic smoothing as well as MAP inference. %, and alternative output generation steps, including max-marginals. 
-We believe that our findings are not only relevant for other types of constellation models but, more generally, for the recent trend of combing deep learning models with physically-motivated structured models. 
+We consider the task of model-based semantic segmentation. The model is described by a constellation model of parts that are represented by active shape- and appearance models. We term this an active constellation model. As a running example we utilize a 21-part, chain-based spine model of a zebra fish observed in microscopic images. The prevailing approach to solve this task is to first generate pixel-independent features for each part, e.g.\ via a cascaded decision forest predictor, which are then fed into an MRF-based model-fitting objective to infer the optimal MAP solution of the constellation model. Our key contribution is to abandon this static, two-stage approach and mix feature generation and model-based inference in a new, more flexible, way. In particular we interleave the cascaded forest predictors with inference steps for the model-fitting. A key finding is that “uncertain” model-outputs at intermediate stages of the cascade, in the form of part-based marginals, are essential for best performance. 
+%
+This is because, as opposed to MAP inference, the soft marginals do not commit to a certain -- potentially wrong -- solution ``at first sight''. If unsure at first sight, soft marginals allow for ``narrowing down'' on the correct solution in later stages of the cascade. 
+%
+We validate our findings with an in-depth study of alternative inference steps, including popular geodesic smoothing as well as MAP inference. %, and alternative output generation steps, including max-marginals. 
+We believe that our findings are not only relevant for other types of constellation models, but, more generally, for the recent trend of combing deep learning models with physically-motivated structured models. 
 \end{abstract}
 
 \begin{figure*}[t]
@@ -67,23 +71,23 @@ Many tasks in computer vision have as input an image and as output a dense label
 So-called structured models, such as a Conditional Random Field (CRFs), are often used for semantic segmentation. 
 Depending on the prior knowledge about the task at hand, the underlying graph may be a (super-)pixel grid, or a graphical constellation model that captures relative locations of multiple parts of an object. 
 %
-Furthermore, knowledge about distinct shapes of sought objects or parts of objects is often captured by means of statistical shape and appearance models. 
+%Furthermore, knowledge about distinct shapes of sought objects or parts of objects is often captured by means of statistical shape and appearance models. 
 
-All these models commonly capture the task of semantic segmentation via an objective function that is composed of a data term and a prior. 
+Such structured models commonly capture the task of semantic segmentation via an objective function that is composed of a data term and a prior. 
 %
-The data term, referred to as "`features"', is derived from the image at hand, yielding pixel-wise distributions over class labels. The prior is enforced subsequently. 
+The data term, referred to as ``features'', is derived from the image at hand, yielding pixel-wise distributions over class labels. The prior is enforced subsequently. 
 %
 % from image data that gives for each individual pixel a distribution over class labels. These class-label distributions define the unary potentials in the CRF
 %
-Classical approaches employ pixel-wise classifiers combined with MAP inference on a (super-)pixel grid graph for segmentation [], or with MAP inference on a graphical constellation model for the localization of object parts [Glocker, Dental,Worm, SeifertAbdominal].  
+Current state-of-the-art approaches typically employ pixel-wise classifiers combined with MAP inference on a (super-)pixel grid graph for semantic segmentation (e.g.\ \cite{funke2014candidate,}), or on a graphical constellation model for the localization of object parts (e.g.\ \cite{Glocker2012,Glocker2013,TeethMICCAI2012,SeifertAnatomicalSPIE2009}).  
 %
-This modelling framework is however very static, as it separates feature generation and inference (i.e.\ "`model fitting"'). 
-
 A recent trend in computer vision is to learn deep, \emph{cascaded} models for feature generation, such as CNNs~\cite{NIPS2012_4824} (see also e.g.\ \cite{funke2014candidate}) and Auto-Context Models~\cite{AutoContext2008} (see also e.g.\ \cite{PoseMachinesECCV2014}). 
 %
 These models play the role of learning a complex non-linear mapping from images to features which are relevant for the task at hand. 
+
+This modelling framework is however very static, as it separates feature generation and inference (i.e.\ "`model fitting"'). 
 %
-Beyond cascading, it has been shown that better features can be generated by \emph{interleaving} feature generation with MAP inference in pixel-grid structured models~\cite{DTF,RTF,UweCVPR2013} 
+It has been shown that better features can be generated by \emph{interleaving} feature generation with MAP inference in pixel-grid structured models~\cite{DTF,RTF,UweCVPR2013} 
 %
 or model agnostic smoothing smoothing~\cite{GeoForests2013}.\footnote{Note that this is different from the classical "`hierarchical"' approach that, purely for the sake of run-time, performs feature generation and inference multiple times on different scales (see e.g.\ \cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} [check!]).}
 
@@ -93,55 +97,44 @@ Instead of interleaving feature generation with a pixel-level structured model o
 %
 We suggest a cascaded pipeline, as illustrated in Figure~\ref{fig:pipeline}. 
 % 
-The most important aspect of this cascade is the question of what to infer from the constellation at intermediate stages of the cascade. 
+The most important aspect of this cascade is the question of what to infer from the constellation model at intermediate stages of the cascade. 
 %
-"`Model based"' options are marginals or MAP solution of the MRF-based constellation model. A model-agnostic, yet "`image-aware"' alternative is geodesic smoothing~\cite{GeoForests2013}. 
+Options are marginal distributions or the MAP solution. A model-agnostic, yet ``image-aware'' alternative to model-based inference is geodesic smoothing~\cite{GeoForests2013}. 
 %
 One of the main aspects of this work is to study the trade-offs that come with these options. 
 
-We show that soft marginals are a clear winner for an application concerned with semantic segmentation of many self-similar structures, namely vertebrae in spines of zebra-fish embryos. 
+We show that marginal distributions are a clear winner for an exemplary application of semantic segmentation of many self-similar structures, namely vertebrae in spines of zebra-fish embryos. 
 %
-(These vertebrae are called "`somites"'.) 
+(These vertebrae are called ``somites''.) 
 %
-The reason that \emph{uncertainy is beneficial} is that individual somites are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. 
+The reason that \emph{uncertainy is beneficial} here is that individual somites are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. 
 %
-Related work has tackled semantic segmentation of vertebrae (in CT scans of humans) via the classical "`feature generation followed by MAP in a constellation model"' approach~\cite{Glocker2013}.
+Related work has tackled semantic segmentation of vertebrae (in CT scans of humans) via the classical approach of feature generation followed by MAP inference in a constellation model~\cite{Glocker2013}, without cascading. 
 %
-We show that marginals instead of MAP helps to not commit to a wrong solution in the early stages of a cascade, and leads to a major increase in resulting segmentation accuracy. 
+We show that employing marginals instead of MAP in a cascaded feature generation pipeline help to avoid committing to a wrong solution in the early stages of a cascade, and lead to a major increase in resulting segmentation accuracy. 
 
 Closely related to the presented work are 
 (1) Auto Context~\cite{AutoContext2008}, but they do not perform any smoothing in between levels of the cascade. 
 (2) Geodesic Forests~\cite{GeoForests2013}, but they do not use a generative structured model for smoothing. 
 (3) Cascaded classifiers interleaved with MAP inference~\cite{}, but they do not use a global generative model and do not explore marginals for inference. 
-(4) Constellation models for vertebrae and other self-similar object segmentation~\cite{Glocker2012,Glocker2013,Klinder2009471,TeethMICCAI2012,WormMiccai2014} but they do not run a cascade. 
+(4) Constellation models for vertebrae and other self-similar object segmentation~\cite{Glocker2012,Glocker2013,Klinder2009471,TeethMICCAI2012,WormMiccai2014} but they do not run a cascade, and do not exploit marginal distributions. 
 
 To summarize, we claim the following three {\bf contributions}:
 \begin{itemize}
-\item In the field of model-based semantic segmentation we are the first to interleave feature generation and model-based inference. We show that this boost performance considerably, compared to not cascading. 
+\item In the field of semantic segmentation with constellation models, we are the first to interleave feature generation and model-based inference. We show that this boosts performance considerably, compared to not cascading. 
 % Note, related hierachical appraoches~\cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} focus on speed not quality that comes form feature generation. 
-\item We show, for the first time, that probabilistic inference gives a major (6\%) boost in performance in cascaded MRF-Forest-based models. This is compared to standard MAP inference (as e.g.\ in \cite{Glocker2013,SeifertAnatomicalSPIE2009,TeethMICCAI2012}) and model-agnostic geodesic smoothing~\cite{GeoForests2013}. 
+\item We show, for the first time, that probabilistic inference gives a major (6\%) boost in performance in cascaded MRF-Forest-based models. This is compared to standard MAP inference (as e.g.\ in \cite{Glocker2013,SeifertAnatomicalSPIE2009,TeethMICCAI2012}) and model-agnostic geodesic smoothing~\cite{GeoForests2013,CriminisiAbdominalIPMI2011}. 
 \item We are the first to tackle spine detection in zebra fish, where we achieve an overall average Dice score of 82\%.
 \end{itemize}
 
 
 
-ToDo: Work in or leave out:
 %
-Another way to look at this is that we want to mix discriminative (discr) and generative models (gen), in a smart way.  E.g., The discr model initializes the gen model in the right search space, the gen model then refines this initialization.  This process is iterated while simultaneously increasing the "confidence" in the discr model output. 
-%
-Additional Literature: 
+TODO: Additional Literature: 
 %
 Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmentation.~\cite{BrainSeg2013}  Liu et al.  2013: Uses generative model to "refine" features in a cascaded discriminative classifier.
 %
 Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
-
-\emph{Related work on Constellation models and Forests: }
-%
-Spine: Glocker~\cite{Glocker2013}; 
-%
-Body parts: Auto Context~\cite{AutoContext2008}, "`Pose Machines"' ECCV 2014~\cite{PoseMachinesECCV2014}; 
-% 
-Abdominal images: GeoF~\cite{GeoForests2013}, and GeoF at IPMI 2011~\cite{CriminisiAbdominalIPMI2011}: "'Entangled Decision Forests and their Application for Semantic Segmentation of CT Images"'. Seifert SPIE: Marginal space learning classifier plus MRF~\cite{SeifertAnatomicalSPIE2009} 
 
 \section{Background}
 
@@ -186,7 +179,7 @@ Fortunately, AAMs can be easily extended to include priors on the model paramete
 \section{Method}
 Given an image as input, we seek a pixel-wise multi-class labelling as output, i.e.\ a \emph{semantic segmentation}. 
 %
-We assume that a model of the spatial relation of classes can be learned, i.e.\ a \emph{constellation model}. This is the case for many applications, as e.g.\ body part segmentation~\cite{PoseMachines2014}, organ segmentation in abdominal images~\cite{SeifertAnatomicalSPIE2009}, spine segmentation~\cite{Glocker2012,Glocker2013}, etc. 
+We assume that a model of the spatial relation of classes can be learned, i.e.\ a \emph{constellation model}. This is the case for many applications, as e.g.\ body part segmentation in natural~\cite{PoseMachinesECCV2014} or medical images~\cite{SeifertAnatomicalSPIE2009}, vertebra segmentation~\cite{Glocker2012,Glocker2013}, etc. 
 %
 
 We propose the following pipeline for \emph{model-based semantic segmentation}, as layed out in Figure~\ref{fig:pipeline}: 
