@@ -238,25 +238,29 @@ These binary segmentations serve as part proposals, i.e.\ segmentation hypothese
 \subsection{Weighting and Fusing Part Proposals}
 \label{subsec:weightsAndFusion}
 
-Pairwise MRF.
+The above method generates a number of part proposals, i.e.\ binary segmentation hypotheses, per class. 
+%
+We assign weights to these proposals by means of a constellation model in the form of a second order CRF. 
+%
+The nodes of the CRF correspond to the classes, $c\in \{1..n_C\}=:C$, and the labels of each node correspond to the respective part proposals, $l\in \{1..n_L\}=:L$. 
+Note that here, for the sake of notation simplicity, we assume we have the same number of proposals for each class. 
 
-Nodes: $c\in \{1..n_C\}=:C$=Classes
+The unary factors, $\phi_c(l)$, reflect the cost of the respective AAM fit, $A_c(l)$, together with the RF probability map $P_c:\Omega\rightarrow [ 0,1 ]$, accumulated over the foreground of the respective binary segmentation, $H_{c,l}: \Omega\rightarrow \{0,1\}$: 
+\begin{equation}
+\phi_c(l) = \exp{(-\lambda\cdot A_c(l))} \cdot \frac{\sum_{x,y} H_{c,l}(x,y)\cdot P_c(x,y)}{\sum_{x,y} H_{c,l}(x,y)}
+\label{eq:unaries}
+\end{equation}
+A parameter $\lambda$ weights the relative influence of the two terms. 
 
-Labels: $l\in \{1..n_L\}=:L$=Part Proposals. (Here: Same number $n_L$ for all classes.)
+The pairwise factors, $\psi_{c,b}(l,k)$, reflect the probability of relative locations of neighboring proposals. To this end, we learn the average offset between part centroids, as well as respective covariances, and assume an acccording gaussian distribution. 
 
-Unaries: $\phi_c(l)$=AAMFit and integrated RF output
-
-Binaries: $\psi_{c,b}(l,k)$ =Learnt from Training Data
-
-By the above method, a number of model instances are initialized and fit, for each class.  Each model instance has a cost associated with its fit.  Use these costs as unaries in a Markov Chain Model.  The pair-wise energy comes from statistics on the relative position of neighboring segments in the training data.  This is exactly what Glocker did already; however, we do probabilistic inference (rather than MAP inference) and keep all the marginals.
-
-Recall, since we initialized many AAMS for fitting, and did probabilistic inference over all of these solutions, we have multiple masks each with its own probability.  For each class c, compute a weighted average:
-
-\[ P_c(x,y) = \frac{1}{Z(x,y)} \cdot \sum_{l\in L} p_c(l)\cdot H_{l,c}(x,y) \]
-
-where there are L model instances initialized (for ease of notation, same number for all classes), $H_{l,c}$ is the binary mask that represents the $l$-th proposal for class $c$, and $p_c(l)$ is the marginal probability of model instance l being the true segmentation of class c, as obtained by probabilistic inference, and $Z(x,y)$ serves for pixel-wise re-normalization. I.e., $Z(x,y)=\sum_{c\in C}\sum_{l\in L} p_c(l)\times H_{l,c}(x,y)$.
-
-We call $P_c$ the \emph{smoothed probability map} for class $c$. 
+We compute weights for each proposal and each class by means of probabilistic inference in this CRF. In our application, the respective graphical model is a chain, and hence probabilistic inference can be performed optimally and efficiently by means of dynamic programming. 
+%
+Given the resulting marginals $p_c(l)$, we compute a weighted average of part proposals: 
+\[ S_c(x,y) = \frac{1}{Z(x,y)} \cdot \sum_{l\in L} p_c(l)\cdot H_{c,l}(x,y) \]
+Here, $Z(x,y)$ serves for pixel-wise re-normalization; I.e., $Z(x,y)=\sum_{c\in C}\sum_{l\in L} p_c(l)\cdot H_{c,l}(x,y)$.
+%
+We call $S_c$ a \emph{smoothed probability map} for class $c$. 
 
 \subsection{Parameters}
 ... to be put into respective equations spread everywhere...
