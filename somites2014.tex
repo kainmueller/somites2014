@@ -48,7 +48,7 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-We consider the task of model-based semantic segmentation. The model is described by a constellation model of parts that are represented by active shape- and appearance models. We term this an active constellation model. As a running example we utilize a 21-part, chain-based spine model of zebra-fish observed in microscopic images. The prevailing approach to solve such a task is to first generate pixel-independent features for each part, e.g.\ via a cascaded decision forest predictor, which are then fed into an MRF-based model-fitting objective to infer the optimal MAP solution of the constellation model. Our key contribution is to abandon this static, two-stage approach and mix feature generation and model-based inference in a new, more flexible, way. In particular we interleave the cascaded forest predictors with inference steps for the model-fitting. A key finding is that “uncertain” model-outputs at intermediate stages of the cascade, in the form of part-based marginals, are essential for best performance. 
+We consider the task of model-based semantic segmentation. The model is described by a constellation of parts that are each represented by active shape- and appearance models. We term this an active constellation model. As a running example we utilize a 21-part, chain-based spine model of zebrafish observed in microscopy images. The prevailing approach to solve such a task is to first generate pixel-independent features for each part, e.g.\ via a cascaded decision forest predictor, which are then fed into an MRF-based model-fitting objective to infer the optimal MAP solution of the constellation model. Our key contribution is to abandon this static, two-stage approach and mix feature generation and model-based inference in a new, more flexible, way. In particular we interleave the cascaded forest predictors with inference steps for the model-fitting. A key finding is that “uncertain” model-outputs at intermediate stages of the cascade, in the form of part-based marginals, are essential for best performance. 
 %
 This is because, as opposed to MAP inference, the soft marginals do not commit to a certain -- potentially wrong -- solution ``at first sight''. If unsure at first sight, soft marginals allow for ``narrowing down'' on the correct solution in later stages of the cascade. 
 %
@@ -59,15 +59,14 @@ We believe that our findings are not only relevant for other types of constellat
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=\columnwidth]{TopRight.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Exemplary application of semantic segmentation: Zebra-fish larvae, where 21 parts of the spine, called \emph{somites}, have to be segmented in microscopic images. Left: Exemplary image. Right: Ground truth segmentation of 21 somites overlaid onto image. }
+\caption{Exemplary application of semantic segmentation: Zebrafish embryo, where 21 parts of the spine, called \emph{somites}, have to be segmented in microscopic images. Left: Exemplary image. Right: Ground truth segmentation of 21 somites overlaid onto image. }
 \label{fig:teaser}
 \end{center}
 \end{figure}
-
 \begin{figure*}[t]
 \begin{center}
 \includegraphics[width=\textwidth]{pipelineBIG2.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Our proposed pipeline for multi-class, semantic segmentation. First, a stack of feature images is created by a standard filter bank. These features are used to train a random forest classifier. The random forest output, i.e.\ a probability map for each class, is then used in combination with the original image to generate candidate segmentations for each class, with the help of active appearance models (AAM). These candidate segmentations are weighted by means of probabilistic inference in a constellation model that captures relative locations of classes. The weighted and fused candidate segmentations are then fed back as additional features into a next random forest classifier. This approach is iterated, forming a cascade: Random forests are interleaved with ``smoothing'' of the forest output by means of probabilistic inference in a constellation model. As opposed to the common MAP inference, probabilistic inference keeps up the uncertainty about intermediate solutions -- this is why we term our approach \emph{Uncertain Forests} (UFo).}
+\caption{Our proposed pipeline for multi-class, semantic segmentation. First, a stack of feature images is created by a standard filter bank. These features are used to train a random forest classifier. The random forest output, i.e.\ a probability map for each class, is then used in combination with the original image to generate candidate segmentations for each class, with the help of active appearance models (AAM). These candidate segmentations are weighted by means of probabilistic inference in a constellation model that captures relative locations of classes. The weighted and fused candidate segmentations are then fed back as additional features into a next random forest classifier. This approach is iterated, forming a cascade: Random forests are interleaved with ``smoothing'' of the forest output by means of probabilistic inference in a constellation model. As opposed to the common MAP inference, probabilistic inference keeps up the uncertainty about intermediate solutions -- this is why we term our approach \emph{Uncertain Forests} (UFO).}
 \label{fig:pipeline}
 \end{center}
 \end{figure*}
@@ -97,7 +96,7 @@ This modelling framework is however very static, as it separates feature generat
 %
 It has been shown that better features can be generated by \emph{interleaving} feature generation with MAP inference in pixel-grid structured models~\cite{DTF,RTF,UweCVPR2013} 
 %
-or model agnostic smoothing smoothing~\cite{GeoForests2013}. Note that this is conceptually different from the classical ``hierarchical'' approach that, purely for the sake of pruning the search space to reduce run-time, performs feature generation and inference/model fitting multiple times on different scales.
+or model agnostic smoothing~\cite{GeoForests2013}. Note that this is conceptually different from the classical ``hierarchical'' approach that, purely for the sake of pruning the search space to reduce run-time, performs feature generation and inference/model fitting multiple times on different scales.
 
 In this work we take the idea of interleaving feature generation and inference a step further: 
 %
@@ -111,7 +110,7 @@ Options are marginal distributions or the MAP solution. A model-agnostic, yet ``
 %
 One of the main aspects of this work is to study the trade-offs that come with these options. 
 
-We show that marginal distributions are a clear winner for an exemplary application of semantic segmentation of many self-similar structures, namely vertebrae in spines of zebra-fish embryos. Figure~\ref{fig:teaser} shows an exemplary image, and a ground truth segmentation. 
+We show that marginal distributions are a clear winner for an exemplary application of semantic segmentation of many self-similar structures, namely developing vertebrae zebrafish embryos. Figure~\ref{fig:teaser} shows an exemplary image, and a ground truth segmentation. 
 %
 The reason that \emph{uncertainy is beneficial} here is that individual somites are highly ambiguous with respect to shape and appearance, hence only the relative spatial arrangement can disambiguate this situation. 
 
@@ -130,7 +129,7 @@ To summarize, we claim the following three {\bf contributions}:
 \item In the field of semantic segmentation with constellation models, we are the first to interleave feature generation and model-based inference. We show that this boosts performance considerably, compared to not cascading. 
 % Note, related hierachical appraoches~\cite{CootesECCV2012RRFandSSM,CootesFemurTMI2013} focus on speed not quality that comes form feature generation. 
 \item We show, for the first time, that probabilistic inference gives a major (6\%) boost in performance in cascaded MRF-Forest-based models. This is compared to standard MAP inference (as e.g.\ in \cite{Glocker2013,SeifertAnatomicalSPIE2009,TeethMICCAI2012}) and model-agnostic geodesic smoothing~\cite{GeoForests2013,CriminisiAbdominalIPMI2011}. 
-\item We are the first to tackle spine detection in zebra fish, where we achieve an overall average Dice score of 82\%.
+\item We are the first to tackle spine detection in zebrafish, where we achieve an overall average Dice score of 82\%.
 \end{itemize}
 
 
@@ -165,30 +164,32 @@ The shape model is defined as follows:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields is the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The scalars $p_i$ are the \emph{shape parameters} of the model. 
-%The training data is first normalized using a Procrustes analysis with a global shape normalizing transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
+where s is a vector of coordinates of the landmarks that define the shape.  Principal component analysis (PCA) yields the mean shape, $s_0$, and eigenvectors $s_i$, sorted by their respective eigenvalues. The scalars $p_i$ are the \emph{shape parameters} of the model. 
+%The training data is first normalized using a Procrustes analysis with a global shape normalizing transformation to avoid modeling this variation in the shape model.
 
-The Appearance Model is defined on the base-mesh  $x$, which is defined by the mean shape $s_0$, as follows:
+The Appearance Model is defined on the base-mesh  $x$, corresponding to the mean shape $s_0$, as follows:
 
 \[A(x) = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x)\]
 
-The average appearance, i.e.\ an image $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalized} training images, i.e.\ images which have been warped onto the base-mesh. The scalars $\lambda_i$ are the \emph{appearance parameters} of the model. 
+The average appearance, $A_0$, as well as eigenvectors $A_i$ are computed by PCA on a set of \emph{shape normalized} training images, i.e.\ images which have been warped onto the base-mesh. The scalars $\lambda_i$ are the \emph{appearance parameters} of the model. 
 
 %Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX 
-An even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
+An even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a combined AAM; however, this restricts the choice of efficient solvers, such as the Inverse Compositional Algorithm~\cite{BakerAAM2004}. 
 %(XX cite earlier Baker paper).  
-For the rest of this paper, we will restrict ourselves to independent shape and appearance models.
+For the rest of this paper, we will only refer to independent shape and appearance models.
 
-Fitting an AAM is a non-linear optimization problem that consists of finding the model instance that minimizes the error to the input image. Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}. 
+% Fitting an AAM is a non-linear optimization problem that consists of finding the model instance that minimizes the error to the input image. Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}. 
 %
-Since AAMs are generative models, they can be used to generate images which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh:
+% Since AAMs are generative models, they can be used to generate images which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh:
+
+Since AAMs are generative models, they can be used to generate images that can be directly compared to the input image.  Thus, fitting an AAM is a non-linear optimization problem that consists of finding the model parameters that minimize the sum-of-squared-differences between the image and the corresponding model instance, evaluated on the base mesh.  Optimization is commonly done either by learning a linear mapping from the error image to parameter updates~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters~\cite{BakerAAM2004}.  The cost of a given fit is:
 
 \begin{equation}
-CostAAM = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
+CostAAM = \sum_{x} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
 \label{eq:costAAM}
 \end{equation} 
 
-To create a model instance, first render an image $A(x)$ on the base-mesh. $A(x)$ is defined by appearance parameters $\lambda$. Then warp this image to a shape instance s, defined by shape parameters $p_i$.  Warping can be done using e.g., a thin-plate spline, parametrized by the set of landmarks, $s_0$ and s. This defines the unique warp parametrized by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalizing transform N(x;q), in our case a similarity transform, parameterized by q.
+To evaluate the cost, first create a model instance by rendering an image $A(x)$ on the base-mesh. $A(x)$ is defined by appearance parameters $\lambda$. Then warp this image to a shape instance s, defined by shape parameters $p_i$.  Warping can be done using e.g., a thin-plate spline, parametrized by the set of landmarks, $s_0$ and s. This defines the unique warp parametrized by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalizing transform N(x;q), in our case a similarity transform, parameterized by q.
 
 A central challenge of AAMs is their sensitivity during the fitting process. 
 However, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted from a Bayesian viewpoint as Gaussian Regularization.
@@ -210,11 +211,11 @@ We propose the following pipeline for \emph{model-based semantic segmentation}, 
 First, we generate probability maps for each class with a random forest classifier.
 %
 Second, we generate many \emph{candidate segmentations} for each class, with the help of Active Appearance models (cf.\ Sec.\ \ref{subsec:hyps}). 
-Each candidate segmentation is a binary segmentation of the respective class. It serves as a ``segmentation hypothesis''. 
+Each candidate segmentation is a binary segmentation of the respective class, and serves as a ``segmentation hypothesis''. 
 %
 Third, we perform probabilistic inference in a constellation model to weigh candidate segmentations (cf.\ Sec.\ \ref{subsec:weightsAndFusion}), and effectively ``smooth'' the probability maps generated by the RF classifier.  
 %
-Fourth, we feed the resulting ``smoothed'' probability maps into a next RF classifier, together with the original probability maps as well as all image features used as input to the previous RF. 
+Fourth, we feed the resulting ``smoothed'' probability maps into a new RF classifier, together with the original probability maps as well as all image features used as input to the previous RF. 
 
 To generate a resulting labeling per pixel from the last RF output in the cascade, one can take the class with maximum probability according to either the RF probability maps, or the respective ``smoothed'' versions. 
 
@@ -279,10 +280,10 @@ We provide comparisons of our approach with a range of other cascaded random for
 \begin{figure*}[t]
 \begin{center}
 \includegraphics[width=0.8\textwidth]{smoothing.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{In our evaluation we interleave different types of inference/smoothing into our cascaded random forest pipeline for semantic segmentation of somites (i.e.\ vertebrae) in zebra-fish embryos. 
+\caption{In our evaluation we interleave different types of inference/smoothing into our cascaded random forest pipeline for semantic segmentation of somites (i.e.\ vertebrae) in zebrafish embryos. 
 %
 The Figure shows examples of the types of inference/smoothing we evaluate. 
-Left: Exemplary zebra-fish embryo. Boxes (1,2): Exemplary somites. Right: Close-ups on probability maps of the respective class labels. Note that close-ups on (2) are rotated by 90 degrees. 
+Left: Exemplary zebrafish embryo. Boxes (1,2): Exemplary somites. Right: Close-ups on probability maps of the respective class labels. Note that close-ups on (2) are rotated by 90 degrees. 
 %
 Four versions of smoothing/inference: (RF) random forest probability map; (GeoF) smoothed by geodesic smoothing~\cite{GeoForests2013}; (MAP) ``smoothed'' by MAP inference in our constellation model, yielding a binary ``probability map''; 
 %
@@ -296,10 +297,10 @@ Four versions of smoothing/inference: (RF) random forest probability map; (GeoF)
 \paragraph{Our Approach. }
 
 We begin by training a random forest of 16 trees, each with maximum depth 12, on features stemming from a standard filter bank~\cite{hall2009weka}.  Additionally, we employ the use of contextual features. 
-Contextual features are generated by evaluating the filter bank response at a random offset to the current pixel, and either thresholding on this value directly, or taking the difference between this value at the current pixel.  
+Contextual features are generated by either (i) directly evaluating features at a random offset to the current pixel, or (ii) taking the difference between such offset features and the feature value at the current pixel.  
 %We find that the use of contextual features is essential for disambiguating between segments with near identical appearance and giving a good initialization of the constellation model.  These parameters are used during the comparison of all the following methods.
 
-During training, we use different subsets of the training data at each level of the cascade, to avoid over-fitting the small data set. As additional ``synthetic'' training data we generate two random rotations (+/- 10 degrees) for each training image.  The remaining training data at each level is then used to build a constellation model for the backbone, and an active appearance model for every individual segment.  To initialize the AAMs for fitting, we find the mode of the RF output for each class using mean shift, and then fit the rigid constellation model to this.  We additionally recenter each AAM on the mode of RF output for its corresponding class.  From these two sets of initializations, we generate many more by sampling locally along the axis of the constellation model, and then run gradient descent to fit each AAM instance to the input image.  Fitting is done over 6 parameters, one shape parameter, one appearance parameter, and an additional four parameters for the similarity transformation.
+During training, we use different subsets of the training data at each level of the cascade, to avoid over-fitting the small data set. As additional ``synthetic'' training data we generate two random rotations (less than 10 degrees in either direction) for each training image.  The remaining training data at each level is then used to build the constellation model for the backbone, and an active appearance model for every individual segment.  To initialize the AAMs for fitting, we find the mode of the RF output for each class using mean shift, and then fit the rigid constellation model to this.  We additionally recenter each AAM on the mode of RF output for its corresponding class.  From these two sets of initializations, we generate many more by sampling locally along the axis of the constellation model, and then run gradient descent to fit each AAM instance to the input image.  Fitting is done over 6 parameters, one shape parameter, one appearance parameter, and an additional four parameters for the similarity transformation.
 
 Each AAM fit yields a hypothetical segmentation of the corresponding somite; however, there is not yet any global consistency imposed.  To introduce this feature, we do probabilistic inference over the chain using Belief Propagation.  The resulting marginals are then used to scale the mask of the corresponding fit, and finally a posterior probability distribution is calculated for every pixel by re-normalizing the weighted fit masks over all classes (cf.\ Equation~\eqref{eq:weighting}).  See Figure~\ref{fig:smoothing} (Ours) for examples of probability maps induced by the marginals of the constellation model.
 
@@ -372,7 +373,7 @@ A first observation makes a point for the conventional approach of feature gener
 \begin{figure*}[t]
 \begin{center}
 \includegraphics[width=0.7\textwidth]{rescue.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Exemplary failure case that is ``rescued'' by our approach (probabilistic inference) over the levels of the cascade, but not by MAP inference. Arrows point to ground truth start end end of spine. Columns: Three levels of the cascade: Top row: MAP inference. Bottom row: Ours (probabilistic inference). After the first level, segmentations are off by one somite in both approaches. This stays constant for MAP. Our approach, however, gradually rescues this case and obtains a correct segmentation after level three of the cascade.}
+\caption{Exemplary failure case that is ``rescued'' by our approach (probabilistic inference) over the levels of the cascade, but not by MAP inference. Arrows point to ground truth start and end of spine. Columns: Three levels of the cascade: Top row: MAP inference. Bottom row: Ours (probabilistic inference). After the first level, segmentations are off by one somite in both approaches. This stays constant for MAP. Our approach, however, gradually rescues this case and obtains a correct segmentation after level three of the cascade.}
 \label{fig:rescue}
 \end{center}
 \end{figure*}
