@@ -165,7 +165,10 @@ Importantly, $A_0$ and $A_i$ are computed from PCA on a set of \emph{shape norma
 
 Since AAMs are generative models, they can be used to create model instances which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh.
 
-\[Cost = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2 \]
+\begin{equation}
+CostAAM = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2
+\label{eq:costAAM}
+\end{equation} 
 
 To create a model instance, first render an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping can be done using e.g., a piecewise affine warping over a triangulated mesh, or a thin-plate spline, parameterized by the set of landmarks, $s_0$ and s.  This defines the unique warp parameterised by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalising transform N(x;q), in our case a similarity transform, parameterized by q.
 
@@ -208,7 +211,7 @@ Third, we sample a number of candidate locations around the centroids of the RF-
 %
 Fourth, we fit a class specific active appearance model (AAM) to the image, multiple times, starting at the initial locations computed in the previous step. 
 %
-Each AAM fit results in a binary segmentation, together with a cost for the fit (cf.\ Eq.\ \eqref{}). 
+Each AAM fit results in a binary segmentation, together with a cost for the fit (cf.\ Eq.\ \eqref{eq:costAAM}). 
 %
 These binary segmentations serve as part proposals, i.e.\ segmentation hypotheses for their respective classes. 
 
@@ -224,7 +227,7 @@ Note that here, for the sake of notation simplicity, we assume we have the same 
 
 The unary factors, $\phi_c(l)$, reflect the cost of the respective AAM fit, $A_c(l)$, together with the RF probability map $P_c:\Omega\rightarrow [ 0,1 ]$, accumulated over the foreground of the respective binary segmentation, $H_{c,l}: \Omega\rightarrow \{0,1\}$: 
 \begin{equation}
-\phi_c(l) = \exp{(-\lambda\cdot A_c(l))} \cdot \frac{\sum_{x,y} H_{c,l}(x,y)\cdot P_c(x,y)}{\sum_{x,y} H_{c,l}(x,y)}
+\phi_c(l) = \exp{(-\lambda\cdot CostAAM_c(l))} \cdot \frac{\sum_{x,y} H_{c,l}(x,y)\cdot P_c(x,y)}{\sum_{x,y} H_{c,l}(x,y)}
 \label{eq:unaries}
 \end{equation}
 A parameter $\lambda$ weights the relative influence of the two terms. 
