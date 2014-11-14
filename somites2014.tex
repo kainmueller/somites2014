@@ -287,6 +287,23 @@ Evaluation: Different kinds of "`smoothing"', each with different kinds of outpu
 
 Dataset: 32 images of developing zebra-fish. Task: Semantic segmentation of 21 somites (i.e.\ developing vertebrae).
 
+\begin{figure}[t]
+\begin{center}
+\includegraphics[width=\columnwidth]{smoothing.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\caption{In our evaluation we interleave different types of inference/smoothing into our cascaded random forest pipeline for semantic segmentation of somites (i.e.\ vertebrae) in zebra-fish embryos. 
+%
+The Figure shows examples of the types of inference/smoothing we evaluate. 
+Left: Exemplary zebra-fish embryo. Boxes (1,2): Exemplary somites. Right: Close-ups on probability maps of the respective class labels. Note that close-ups on (2) are rotated by 90 degrees. 
+%
+Four versions of smoothing/inference: (RF) random forest probability map; (GeoF) smoothed by geodesic smoothing\cite{GeoF2013}; (MAP) "`smoothed"' by MAP inference in our constellation model, yielding a binary "`probability map"'; 
+%
+(MM) "`smoothed"' by our proposed approach, i.e.\ probabilistic inference in our constellation model.  }
+\label{fig:smoothing}
+\end{center}
+\end{figure}
+%
+Figure \ref{fig:smoothing} show the different types for inference/smoothing we evaluate. 
+
 \paragraph{Ours. }
 AAM with probabilistic inference 
 
@@ -307,7 +324,7 @@ This accomplishes smoothing in quite an indirect way, as a competition between d
 
 \begin{figure}[t]
 \begin{center}
-\includegraphics[width=\columnwidth]{TableDiceScores.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
+\includegraphics[width=\columnwidth]{TableDiceScores_2columns_noGeoF2.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
 \caption{Evaluation on 32 datasets. Dice Scores on all 21 Somites: Mean and standard deviation (in brackets).}
 \label{tab:results}
 \end{center}
