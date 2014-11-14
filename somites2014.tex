@@ -52,13 +52,6 @@ We consider the task of model-based semantic segmentation. The model is describe
 We believe that our findings are not only relevant for other types of constellation models but, more generally, for the recent trend of combing deep learning models with physically-motivated structured models. 
 \end{abstract}
 
-\begin{figure}
-\includegraphics[width=0.5\textwidth]{Teaser.png}
-\caption{Teaser figure.}
-\label{fig:teaser.}
-\end{figure}
-
-
 \section{Introduction}
 Many tasks in computer vision have as input an image and as output a dense labeling, where each pixel is assigned one out of many pre-defined classes. An example is a sematic segmentation of a person in an image, where each pixel is assigned a label such as “background”, “left leg”, or “head”. 
 %
@@ -111,7 +104,7 @@ Closely related to the presented work are
 (1) Auto Context~\cite{AutoContext2008}, but they do not perform any smoothing in between levels of the cascade. 
 (2) Geodesic Forests~\cite{GeoForests2013}, but they do not use a generative structured model for smoothing. 
 (3) Cascaded classifiers interleaved with MAP inference~\cite{}, but they do not use a global generative model and do not explore marginals for inference. 
-(4) Constellation models for vertebrae segmentation~\cite{Glocker2012,Glocker2013} but they do not run a cascade. 
+(4) Constellation models for vertebrae and other self-similar object segmentation~\cite{Glocker2012,Glocker2013,Klinder2009471,TeethMICCAI2012,WormMiccai2014} but they do not run a cascade. 
 
 To summarize, we claim the following three {\bf contributions}:
 \begin{itemize}
@@ -134,13 +127,14 @@ Deformable Templates Guided Discriminative Models for Robust 3D Brain MRI Segmen
 Uwe's hint \cite{Denzler2012}: As Time Goes by -- Anytime Semantic Segmentation with Iterative Context Forests
 
 
-\section{Background / Related work}
-
-To be structured. The current entangling of Background and additional references does not work. 
-Goal: put rel. work in Introduction; Give as much as we like background on RF to fill space (low priority!!! -- as a minimal solution just refer to Breiman), and do a more thorough background on AAMs (0.5page)
+\section{Background}
 
 \paragraph{RF. }
-We assume that the reader is familiar with the general concept of Random Forests [Breiman]. Filter Bank, Classification Forest, offset and difference features. 
+We assume that the reader is familiar with the general concept of Random Forests~\cite{BreimanRF}. 
+%
+In the Auto Context approach~\cite{AutoContext2008} for feature generation, the probability maps yielded by a random forest are fed as features into subsequent random forests, yielding a cascade of forests.  
+%
+
 
 \paragraph{Cascading. }
 
@@ -156,15 +150,6 @@ Spine: Glocker~\cite{Glocker2013}
 Body parts: Auto Context~\cite{AutoContext2008}, "`Pose Machines"' ECCV 2014~\cite{PoseMachinesECCV2014}
 
 Abdominal images: GeoF~\cite{GeoForests2013}, and GeoF at IPMI 2011~\cite{CriminisiAbdominalIPMI2011}: "'Entangled Decision Forests and their Application for Semantic Segmentation of CT Images"'. Seifert SPIE: Marginal space learning classifier plus MRF~\cite{SeifertAnatomicalSPIE2009} 
-
-\emph{Related work on Constellation models of self-similar structures: }
-
-Spine: (Glocker) Klinder (SSM)~\cite{Klinder2009471}: Generalized Hough Transform as detector
-
-Dental: our MICCAI 2012~\cite{TeethMICCAI2012} (Generalized Hough Transform + SSM as detector)
-
-Worm~\cite{WormMiccai2014}
-
 
 \paragraph{AAM. Dave, please work on this. Should be 0.5p max. Terminology as in Cootes papers.}
 Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}).  
@@ -283,6 +268,10 @@ We call $P_c$ the \emph{smoothed probability map} for class $c$.
 
 \section{Results}
 Approach: Cascade interleaved with "`smoothing"'. 
+
+In our approach we employ Classification Forests, where features stem from a standard filter bank [Weka], together with offset and difference features. 
+%
+
 Evaluation: Different kinds of "`smoothing"', each with different kinds of outputs.
 
 Dataset: 32 images of developing zebra-fish. Task: Semantic segmentation of 21 somites (i.e.\ developing vertebrae).
