@@ -287,12 +287,13 @@ We begin by training a random forest of 16 trees, each with maximum depth 12, on
 
 During training, we use a different subset of the data at each level of the cascade, to avoid overfitting the small data set.  Additionally, we generate two additional random rotations (+/- 10 degrees) for each training instance.  The remaining data at each level is then used to build a constellation model for the backbone, and an active appearance model for every individual segment.  To initialize the AAMs for fitting, we find the mode of the RF output for each class using mean shift, and then fit the rigid constellation model to this.  We additionally recenter each AAM on the mode of RF output for its corresponding class.  From these two sets of initializations, we generate many more by sampling locally along the axis of the constellation model, and then run gradient descent to fit each AAM instance to the input image.  Fitting is done over 6 parameters, one shape parameter, one appearance parameter, and an additional four parameters for the similarity transformation.
 
+(XX next bit is crap.  it's repeated from methods, so wasn't sure what to say exactly)
 Each AAM fit yields a hypothetical segmentation of the corresponding class; however, there is not yet any global consistency imposed.  To introduce this feature, we do probabilistic inference over the chain using Belief Propagation.  The resulting marginals are then used to scale the mask of the corresponding fit, and finally a posterior probability distribution is calculated for every pixel by renormalizing the weighted fit masks over all classes (XX see equation 2?).  See \ref{fig:smoothing}, MM.
 
 
 \paragraph{Auto Context. }
 
-The canonical example of stacked classifiers is Auto-context, where the RF output is sampled over a regular grid of offsets, and these features are used in the next level of a cascade.  We evaluate the performace of Auto-context by directly using the RF output as input to the next layer, without model fitting.  See \ref{fig:smoothing}, RF, for examples of this.
+The canonical example of stacked classifiers is Auto-context, where the RF output is sampled over a regular grid of offsets, and these features are used in the next level of a cascade.  Since our random forests already sample the local features, we evaluate the performace of Auto-context by simply concatenting the RF output as additional features in the next layer.  See \ref{fig:smoothing}, RF, for examples of how the RF output looks.
 
 \paragraph{GeoF. }
 The simplest way to generate a smoothed RF Output is to re-use the Geodesic smoothing idea from Criminisi.  Let:
@@ -303,18 +304,19 @@ and $\nu$ is some free parameter.  Note, x and x' are two points in the image. $
 
 \[ g(c|v(x)) = \frac{1}{Z} p(c|v(x)) e^{\frac{-Q(x;p(c|v(\Omega)),\nabla J)^2}{\sigma ^2}} \]
 
-This accomplishes smoothing in quite an indirect way, as a competition between different possible class labels for a given pixel, mediated by the normalization Z.  See \ref{fig:smoothing}, GeoF, for examples of this.
+This accomplishes smoothing in quite an indirect way, as a competition between different possible class labels for a given pixel, mediated by the normalization Z.  Moreover, this smoothing is completely model agnostic.  We observe that GeoF sometimes generates smooth posteriors across individual segments; however this sensitively depends on the local texture of the image.  See \ref{fig:smoothing}, GeoF, for examples.
 
 \paragraph{MAP Inference. }
 
-Finally, we consider another model-based method of using.  This approach is exteremely similar to ours; however at every level, the MAP solution of the constellation model is used as features to the next layer.  This returns hard 0-1 decisions about the class of every pixel, see \ref{fig:smoothing}, MAP.
+Finally, we consider another model-based method of smoothing.  This approach is exteremely similar to ours; however, at every level the MAP solution of the constellation model is used as features to the next layer.  This returns hard decisions about the class of every pixel, see \ref{fig:smoothing}, MAP.
 
 \paragraph{Quantitative Results}
 
-Autocontext is the simplest approach that we consider, and it returns a final Dice score of 0.60 (sd=0.20) after three levels (\ref{tab:results}).  Interestingly, 
+Autocontext is the simplest approach that we consider, and it returns a final Dice score of 0.60 (sd=0.20) after three levels (\ref{tab:results}).  Interestingly, all of the methods that we tried stopped improving after three levels of cascading, presumably due to the small size of the data set.  In contrast to Auto-context, GeoF generates significantly smoother posteriors, and performs better at every level of the cascade (\ref{fig:boxplots}).  The best score obtained by GoeF was 0.66 (sd=0.22) after three levels, when evaluated on its smoothed output.  This increase of 0.06 is comparable to the gains reported in (XX ref GeoF) when applying geodesic smoothing, without additionally changes to the training objective.
 
+The next method that we tried was MAP Inference, which computes the optimal configuration of the constellation model as smooth features into the next level.  MAP Inference performs considerably better than the previous techniques after the first level of the cascade, with a mean Dice Score of XX.  This approach also improves over the cascade, reaching a final Dice Score of 0.76 (sd=0.27) after three levels, when evaluated on the MAP output.
 
-talk about cascade boxplots and table (below)
+Finally, our approach yielded the highest Dice Score of 0.82 (sd=0.18) after three levels of cascading.  The main difference that we observed between our technique and MAP inference was a dramatic increase in the mean Dice Score and reduction in the standard deviation over the 3 levels, which we account to \'rescuing\' outliers (\ref{fig:rescue}).
 
 \begin{figure}[t]
 \begin{center}
@@ -334,8 +336,6 @@ talk about cascade boxplots and table (below)
 % \vspace{-2mm}
 \caption{3 level cascade. Segmentation accuracy of 4 methods after each level: RF output (green), GeoF (cyan), MAP (red), Ours (blue). For every method at every level, Dice scores of 21 somites in 32 images, i.e.\ 672 scores, are visualized as a \emph{box plot}~\cite{chambers1983graphical}. A colored box spans from lower to upper quartile, i.e.\ the inter-quartile range. I.e.\ 50\% of the data points lie within the box. The horizontal bar within the box depicts the median. The black diamond depicts the mean. Whiskers depict the outlier-free data range. Circles depict outliers. Outliers are defined as data points beyond median $\pm$ 2 inter-quartile ranges. }
 \end{figure}
-
-
 
 
 
