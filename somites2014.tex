@@ -67,7 +67,7 @@ We believe that our findings are not only relevant for other types of constellat
 \begin{figure*}[t]
 \begin{center}
 \includegraphics[width=\textwidth]{pipelineBIG2.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
-\caption{Pipeline.}
+\caption{Our proposed pipeline for multi-class, semantic segmentation. First, a stack of feature images is created by a standard filter bank. These features are used to train a random forest classifier. The random forest output, i.e.\ a probability map for each class, is then used in combination with the original image to generate candidate segmentations for each class, with the help of active appearance models (AAM). These candidate segmentations are weighted by means of probabilistic inference in a constellation model that captures relative locations of classes. The weighted and fused candidate segmentations are then fed back as additional features into a next random forest classifier. This approach is iterated, forming a cascade: Random forests are interleaved with ``smoothing'' of the forest output by means of probabilistic inference in a constellation model. As opposed to the common MAP inference, probabilistic inference keeps up the uncertainty about intermediate solutions -- this is why we term our approach \emph{Uncertain Forests} (UFo).}
 \label{fig:pipeline}
 \end{center}
 \end{figure*}
