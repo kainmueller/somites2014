@@ -155,48 +155,32 @@ Interleaved inference/smoothing operates on these probability maps, and feeds ``
 
 
 
-\paragraph{AAM. Dave, please work on this. Should be 0.5p max. Terminology as in Cootes papers.}
-Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned (PCA) from training data.  Fitting an AAM is a non-linear optimisation problem, that is done via incremental updates to fitting parameters.  Importantly, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}).  
+\paragraph{AAM}
+Active appearance models (AAMs)~\cite{CootesAAM2001} are linear, generative, parametric models of shape and appearance that are learned from training data, and are widely used e.g., for face modelling (XX need ref).  Fitting an AAM is a non-linear optimisation problem that consists of finding the model instance that minimizes the error to the input image.  Optimization is commonly done either by learning a linear mapping from the error image to parameter updates ~\cite{CootesAAM2001}, or by iteratively computing incremental gradient descent updates to model parameters ~\cite{BakerAAM2004}. 
 
-Shape Model:
+The Shape Model is defined as follows:
 
 \[s = s_0 + \sum_{i=1}^n p_i s_i\]
 
-where s is a vector of x,y coordinates of the landmarks that define the shape.  From PCA, $s_0$ is the mean shape, and $s_i$ are n eigenvectors corresponding to the n largest eigenvalues.  Not shown here is that the training data is first noramlised using a Procrustes analysis using a global shape normalising transformation (in our case, a similarity transform) to avoid modeling this variation in the linear model.
+where s is a vector of x,y coordinates of the landmarks that define the shape.  From PCA, $s_0$ is the mean shape, and $s_i$ are n eigenvectors corresponding to the n largest eigenvalues.  Not shown here is that the training data is first noramalised using a Procrustes analysis with a global shape normalising transformation (in our case, a similarity transform) to avoid modeling this variation in the shape model.
 
-Appearance Model:
+The Appearance Model is defined on the base-mesh, as follows:
 
 \[A(x) = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x)\]
 
-Analogous to shape model. $A_0$ and $A_i$ are computed from PCA on a set of \emph{shape normalised} training images, which have been warped onto the base-mesh $s_0$.  Shape normalizing is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.
+Importantly, $A_0$ and $A_i$ are computed from PCA on a set of \emph{shape normalised} training images, which have been warped onto the base-mesh $x$, which is defined by the mean shape $s_0$.  Shape normalization is a key benefit of AAMs (compared to e.g. Eigen-faces), and leads to more compressed PCA representation.  XX Additionally, an even more compact representation can be realized by a subsequent step of PCA on the combined shape and appearance parameters, leading to a Combined AAM; however, this limits the choice of efficient solvers, such as the Inverse Compositional Algorithm (XX cite earlier Baker paper).  For the rest of this paper, we will restrict ourselves to discussing independent shape and appearance models.
 
-To create a model instance, create an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping is done using a thin-plate spline, parameterized by the set of landmarks, $s_0$ and s.  This defines the unique warp parameterised by p, called W(x;p).
+Since AAMs are generative models, they can be used to create model instances which can be directly compared to the input image.  Thus, fitting an AAM consists of finding the model parameters that minimize the sum-of-squared-distances between the image and the corresponding model instance, evaluated on the base mesh.
 
-Fitting criteria:
+\[Cost = \sum_{x \epsilon s_0} [A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q))]^2 \]
 
-\[Error = A_0(x) + \sum_{i=1}^m \lambda_i A_i(x) - I(N(W(x;p);q)) \]
+To create a model instance, first render an image A(x) (defined by $\lambda$) on the base-mesh, and then warp it to s (defined by p).  Warping can be done using e.g., a piecewise affine warping over a triangulated mesh, or a thin-plate spline, parameterized by the set of landmarks, $s_0$ and s.  This defines the unique warp parameterised by p, called W(x;p).  Finally, the model instance is transformed into the image by the global shape normalising transform N(x;q), in our case a similarity transform, parameterized by q.
 
-where N(x;q) is the similarity transform, parameterized by q, and the cost is typically the sum of squared errors over the shape normalized patch.
-
-\[Cost = \sum_{x \epsilon s_0} [Error]^2 \]
-
-Final note, the most efficient fitting routine [] actually "projects out" the appearance variation (from the Error image), and simply solves for the parameters of the transformation: p,q.  If you keep one shape parameter (n=1), this leads to a 5 parameter model.
-
-
-One can add priors on the model parameters, as follows:
+A central challenge of AAMs is their sensitivity during the fitting process.  A popular strategy for combatting this is to add priors on the model parameters, as follows:
 
 \[ \sum_{x \epsilon s_0} [A(x) - I(N(W(x;p);q)]^2 + \sum_{i=1}^K F_i^2(p,q) \]
 
-If $F_i(p,q)$ is quadratic, this can be interpreted in the Bayesian framework as Gaussian Regularization.  There's also a clear way to "ramp" the importance of the priors as:
-
-\[ F_i^2(p,q) = r[(p-p_0)^2+(q-q_0)^2]) \]
-
-where r is the parameter that captures how much we trust the discr model output (this could be learned). 
-
-Note, adding priors doesn't slow down the code too much.  You can still use the same fitting algorithm, there's just some extra computation in each loop.
-
-\emph{Related work on SSMs and Random Forests: }
-
+Fortunately, AAMs can be easily extended to include priors on the model parameters (see also~\cite{BakerAAM2004}), with minimal additional cost to the fitting algorithm, and can be interpreted in the Bayesian framework as Gaussian Regularization.
 
 
 \section{Method}
@@ -207,7 +191,7 @@ We assume that a model of the spatial relation of classes can be learned, i.e.\ 
 
 We propose the following pipeline for \emph{model-based semantic segmentation}, as layed out in Figure~\ref{fig:pipeline}: 
 %
-First, we generate probability maps for each class with a random forest (RF) classifier.
+First, we generate probability maps for each class with a random forest classifier.
 %
 Second, we generate many \emph{part proposals} for each class, with the help of Active Appearance models (cf.\ Sec.\ \ref{subsec:hyps}). 
 Each part proposal is a binary segmentation of the respective class. It serves as a ``segmentation hypothesis''. 
@@ -273,17 +257,20 @@ We call $S_c$ a \emph{smoothed probability map} for class $c$.
 \end{itemize}
 
 \section{Results}
+
+We evaluate our semantic segmentation approach on a data set of 32 images of developing zebrafish.  We manually segment these images into 22 classes, corresponding to 21 segments of the developing spine and background.  This data set poses multiple challenges, due to the repetitive nature of the structures and the small amount of training data.  We provide comparisons with the state-of-the-art approach for spine detection, and a range of other cascaded random forest classifiers, including Auto-context (XX cite), GeoF (XX cite), and MAP cascade (XX cite).  We trained all algorithms with the same input features and the same forest parameters, 3 levels of 16 trees, each with depth 12.  Features stem from a standard filter bank [Weka], together with local contextual features, consisting of offset features values, and their differences to the local feature value.  Finally, quantitative evaluation is given in terms of the Dice score averaged over all classes of the 32 images, using 2-fold cross-validation.
+
 Approach: Cascade interleaved with "`smoothing"'. 
+point to figure below
 
-In our approach we employ Classification Forests, where features stem from a standard filter bank [Weka], together with offset and difference features. 
-%
 
-Evaluation: Different kinds of "`smoothing"', each with different kinds of outputs.
+
 
 Dataset: 32 light microscopic images of developing zebra-fish. Task: Semantic segmentation of 21 somites (i.e.\ developing vertebrae). 
 %
 We perform a two-fold cross validation. We explore four different approaches. 
 
+note to dave - Smoothing Figure
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=\columnwidth]{smoothing.jpg} %&[trim=0cm 2cm 0cm 1cm,height=0.2\textheight]
@@ -299,10 +286,17 @@ Four versions of smoothing/inference: (RF) random forest probability map; (GeoF)
 \end{center}
 \end{figure}
 %
+
+
+
 Figure \ref{fig:smoothing} show the different types for inference/smoothing we evaluate. 
+
+
 
 \paragraph{Ours. }
 AAM with probabilistic inference 
+
+
 
 \paragraph{Auto Context. }
 
@@ -318,6 +312,9 @@ and $\nu$ is some free parameter.  Note, x and x' are two points in the image. $
 This accomplishes smoothing in quite an indirect way, as a competition between different possible class labels for a given pixel, mediated by the normalization Z.  
 
 \paragraph{MAP Inference. }
+
+
+talk about cascade boxplots and table (below)
 
 \begin{figure}[t]
 \begin{center}
@@ -337,6 +334,10 @@ This accomplishes smoothing in quite an indirect way, as a competition between d
 % \vspace{-2mm}
 \caption{3 level cascade. Segmentation accuracy of 4 methods after each level: RF output (green), GeoF (cyan), MAP (red), Ours (blue). For every method at every level, Dice scores of 21 somites in 32 images, i.e.\ 672 scores, are visualized as a \emph{box plot}~\cite{chambers1983graphical}. A colored box spans from lower to upper quartile, i.e.\ the inter-quartile range. I.e.\ 50\% of the data points lie within the box. The horizontal bar within the box depicts the median. The black diamond depicts the mean. Whiskers depict the outlier-free data range. Circles depict outliers. Outliers are defined as data points beyond median $\pm$ 2 inter-quartile ranges. }
 \end{figure}
+
+
+
+
 
 \section{Discussion}
 Ours is the best :)
