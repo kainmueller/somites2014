@@ -48,10 +48,21 @@ First line of institution2 address\\
 
 %%%%%%%%% ABSTRACT
 %\begin{abstract}
-We will include Figures~\ref{fig:output-over-levels}~and~\ref{fig:var-importance} of the supplementary material into the paper. 
+We will include Figures~\ref{fig:var-importance}~and~\ref{fig:output-over-levels} of the supplementary material into the paper. 
 
 %\end{abstract}
+\section{Variable Importance}
+%
+\begin{figure*}[t]
+\begin{center}
+%\includegraphics[width=\textwidth]{pipelineBIG2.jpg} 
+\caption{We measure variable importance as defined in~\cite{BreimanRF}. Variable importance hints at how much worse the forest would perform (as a fraction of 1) without the respective feature. The tabel gives aggregated variable importance values for the filter bank features (1st column), the RF output (2nd column), and the smoothed RF output (3rd column). Top three rows: Our approach, three levels of the cascade. Bottom three rows: MAP instead of probabilistic inference. In the first level, only filter bank features are available. Hence the aggregated variable importance is 1 for the filter bank features, and zero otherwise. From the second level on variable importance reveals that smoothed RF output in the form of marginals is much more beneficial for the performance of the forest than the alternative MAP solution. }
+\label{fig:var-importance}
+\end{center}
+\end{figure*}
 
+\section{Additional Exemplary Results}
+%
 \begin{figure*}[t]
 \begin{center}
 %\includegraphics[width=\columnwidth]{TopRight.jpg} 
@@ -60,21 +71,9 @@ We will include Figures~\ref{fig:output-over-levels}~and~\ref{fig:var-importance
 \end{center}
 \end{figure*}
 
-\begin{figure*}[t]
-\begin{center}
-%\includegraphics[width=\textwidth]{pipelineBIG2.jpg} 
-\caption{Variable Importance.}
-\label{fig:var-importance}
-\end{center}
-\end{figure*}
-
-\begin{figure*}[t]
-\begin{center}
-%\includegraphics[width=\textwidth]{pipelineBIG2.jpg} 
-\caption{Individual methods as box plots with parallel coordinates.}
-\label{fig:pcp-plots}
-\end{center}
-\end{figure*}
-
+{\small
+\bibliographystyle{ieee}
+\bibliography{somites2014-supplement}
+}
 
 \end{document}
