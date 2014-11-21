@@ -1,0 +1,8 @@
+caption
+
+Exemplary MAP inference correct, ours correct.  Result of four different methods: Auto-context, MAP, GeoF, Ours, with respect to the levels of cascading.  Ground truth depicted on the right hand side.  Red line is for illustration only, to mark the tip of the somite.
+
+
+Exemplary MAP inference incorrect, ours incorrect.  Result of four different methods: Auto-context, MAP, GeoF, Ours, with respect to the levels of cascading.  Ground truth depicted on the right hand side.  Red line is for illustration only, to mark the tip of the somite.
+
+Exemplary MAP inference incorrect, ours correct.  Result of four different methods: Auto-context, MAP, GeoF, Ours, with respect to the levels of cascading.  Ground truth depicted on the right hand side.  Red line is for illustration only, to mark the tip of the somite.
