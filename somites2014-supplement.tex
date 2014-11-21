@@ -53,10 +53,14 @@ We will include Figures~\ref{fig:var-importance}~and~\ref{fig:output-over-levels
 %\end{abstract}
 \section{Variable Importance}
 %
-\begin{figure*}[t]
+\begin{figure*}[h!]
 \begin{center}
-%\includegraphics[width=\textwidth]{pipelineBIG2.jpg} 
-\caption{We measure variable importance as defined in~\cite{BreimanRF}. Variable importance hints at how much worse the forest would perform (as a fraction of 1) without the respective feature. The tabel gives aggregated variable importance values for the filter bank features (1st column), the RF output (2nd column), and the smoothed RF output (3rd column). Top three rows: Our approach, three levels of the cascade. Bottom three rows: MAP instead of probabilistic inference. In the first level, only filter bank features are available. Hence the aggregated variable importance is 1 for the filter bank features, and zero otherwise. From the second level on variable importance reveals that smoothed RF output in the form of marginals is much more beneficial for the performance of the forest than the alternative MAP solution. }
+\begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{VariableImportance_Ours.jpg} &
+\includegraphics[width=\columnwidth]{VariableImportance_MAP.jpg} \\
+Our approach: Marginals for smoothing RF output & MAP instead of marginals \\
+\end{tabular}
+\caption{The table shows variable importance as defined in~\cite{BreimanRF}. Variable importance hints at how much worse the forest would perform (as a fraction of 1) without the respective feature. The tabel gives aggregated variable importance values for the filter bank features (1st column), the RF output (2nd column), and the smoothed RF output (3rd column). Right: Our approach, i.e.\ probabilistic inference (marginals) for smoothing the RF output, over three levels of the cascade. Left: MAP instead of probabilistic inference. In the first level, only filter bank features are available. Hence the aggregated variable importance is 1 for the filter bank features, and zero otherwise. From the second level on variable importance reveals that smoothed RF output in the form of marginals is much more beneficial for the performance of the forest than the alternative MAP solution. }
 \label{fig:var-importance}
 \end{center}
 \end{figure*}
