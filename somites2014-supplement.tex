@@ -54,7 +54,7 @@ We will include Figures~\ref{fig:var-importance}~and~\ref{fig:output-over-levels
 
 %\end{abstract}
 \section{Variable Importance}
-We evaluated \emph{variable importance}~\cite{BreimanRF} for our approach (Figure~\ref{fig:var-importance}, left) as well as the MAP approach (Figure~\ref{fig:var-importance}, right). 
+We evaluated \emph{variable importance}~\cite{BreimanRF} for our approach (Figure~\ref{fig:var-importance}, top) as well as the MAP approach (Figure~\ref{fig:var-importance}, bottom). 
 %%
 Variable importance measures how much worse a forest would perform (as a fraction of 1) with a random feature instead of the feature corresponding to the respective variable -- in other words, variable importance captures how important a feature is for the performance of a forest. 
 %
@@ -63,17 +63,18 @@ Figure~\ref{fig:var-importance} lists the aggregated (i.e.\ summed) variable imp
 Figure~\ref{fig:var-importance} reveals how important the smoothed RF output is for forest performance in our approach (Level 2: 0.55, Level 3: 0.46), as opposed to the MAP approach, where the smoothed RF output is considerably less important (Level 2: 0.24, Level 3: 0.25). 
 %
 %
-\begin{figure*}[h!]
+\begin{figure}
 \begin{center}
-\begin{tabular}{cc}
-\includegraphics[width=\columnwidth]{VariableImportance_Ours.jpg} &
-\includegraphics[width=\columnwidth]{VariableImportance_MAP.jpg} \\
-Our approach: Marginals for smoothing RF output & MAP instead of marginals \\
-\end{tabular}
+%\begin{tabular}{cc}
+\includegraphics[width=\columnwidth]{VariableImportance_Ours.jpg} %&
+Our approach: Marginals for smoothing RF output %& \\
+\includegraphics[width=\columnwidth]{VariableImportance_MAP.jpg} %\\
+MAP instead of marginals 
+%\end{tabular}
 \caption{Variable importance. Variable importance reveals that smoothed RF output in the form of marginals is much more beneficial for the performance of the forest than the alternative MAP solution. }
 \label{fig:var-importance}
 \end{center}
-\end{figure*}
+\end{figure}
 
 \section{Additional Exemplary Results}
 %
